@@ -1,0 +1,224 @@
+* {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+	font-family: "Montserrat", sans-serif;
+}
+a {
+	text-decoration: none;
+}
+#navbar {
+	height: 50px;
+	background-color: pink;
+	display: flex;
+	justify-content: space-around;
+}
+#navbar span,
+div {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.fa-github,
+.fa-moon {
+	font-size: larger;
+	margin: 0px 2px;
+}
+#viewRepo {
+	padding: 5px 10px;
+	border-radius: 15px;
+	font-weight: 600;
+}
+#darkMode {
+	height: 30px;
+	aspect-ratio: 1/1;
+	border-radius: 50%;
+}
+#viewRepo:hover,
+#darkMode:hover {
+	background-color: aqua;
+	cursor: pointer;
+}
+.homePage,
+.playPage {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+#homeText {
+	background-color: bisque;
+	margin: 40px 10%;
+	display: flex;
+	flex-direction: column;
+	text-align: center;
+	padding: 20px 30px;
+}
+#title {
+	font-weight: bolder;
+	font-size: 2rem;
+	margin-bottom: 20px;
+}
+#ins {
+	background-color: gray;
+	padding: 15px;
+	display: flex;
+	flex-direction: column;
+	font-weight: 500;
+}
+#howToPlay {
+	margin-bottom: 5px;
+	font-weight: 700;
+}
+#boardSize {
+	height: 40px;
+	width: 150px;
+	background-color: antiquewhite;
+	border-radius: 10px;
+	font-weight: 600;
+	position: relative;
+}
+#leftC,
+#rightC {
+	aspect-ratio: 1/1;
+	height: 25px;
+	font-size: 30px;
+	border-radius: 50%;
+	position: absolute;
+	left: 15px;
+}
+#rightC {
+	left: calc(150px - 25px - 15px);
+}
+#leftC:hover,
+#rightC:hover {
+	background-color: pink;
+	cursor: pointer;
+}
+#startOrContinueButton,
+#newGameButton {
+	margin-top: 30px;
+	height: 30px;
+	width: 120px;
+	background-color: antiquewhite;
+	font-weight: 600;
+	cursor: pointer;
+}
+#playDetails {
+	height: calc((100vh - 50px) * 0.15);
+	background-color: beige;
+	margin: calc((100vh - 50px) * 0.0275);
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: 1.5vh;
+}
+#scoreCards {
+	text-align: center;
+	background-color: pink;
+	gap: 60px;
+	height: 5vh;
+}
+#scoreCards > div {
+	height: inherit;
+	background-color: aqua;
+	font-size: 2vh;
+	display: flex;
+	flex-direction: column;
+	padding: 2px 5px;
+	border-radius: 10px;
+}
+#buttons {
+	font-size: 3.5vh;
+	gap: 55%;
+}
+#buttons > div {
+	cursor: pointer;
+}
+#board {
+	aspect-ratio: 1/1;
+	height: calc((100vh - 50px) * 0.48);
+	background-color: gray;
+}
+#joystick {
+	aspect-ratio: 1/1;
+	height: calc((100vh - 50px) * 0.24);
+	background-color: beige;
+	margin: calc((100vh - 50px) * 0.0275);
+	border-radius: 50%;
+	position: relative;
+}
+#joystick > div {
+	height: 6.5vh;
+	aspect-ratio: 1/1;
+	font-size: 6.5vh;
+	background-color: pink;
+	border-radius: 50%;
+	position: absolute;
+	padding: 5px;
+	cursor: pointer;
+}
+#up {
+	top: 6%;
+}
+#left {
+	left: 6%;
+}
+#right {
+	right: 6%;
+}
+#down {
+	bottom: 6%;
+}
+.popUpBg {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100vh;
+	width: 100vw;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+.popUp {
+	background-color: beige;
+	height: 120px;
+	width: 240px;
+	border-radius: 20px;
+	font-weight: 600;
+	display: flex;
+	flex-direction: column;
+	position: fixed;
+	top: calc((100vh - 50px - 60px) / 2);
+	left: calc((100vw - 240px) / 2);
+}
+#popUpText {
+	height: 65%;
+	width: 100%;
+	border-bottom: 2px solid black;
+	text-align: center;
+}
+#popUpOptions {
+	height: calc(100% - 65%);
+	width: 100%;
+}
+#popUpOptions > div {
+	height: 100%;
+	width: 50%;
+	display: flex;
+	justify-content: center;
+}
+#yes {
+	border-right: 2px solid black;
+	color: rgb(18, 208, 225);
+	border-bottom-left-radius: 20px;
+}
+#no {
+	color: red;
+	border-bottom-right-radius: 20px;
+}
+#yes:hover,
+#no:hover {
+	background-color: rgb(200, 197, 197);
+	cursor: pointer;
+}
+.hidden {
+	display: none;
+}

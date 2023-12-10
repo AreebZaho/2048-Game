@@ -1,13 +1,13 @@
 Dark mode toggler
-Home -> Title + Instructions on how to play + Board sizes 3x3 to 8x8
-Back to home option with curr board preserved -> then displaying a [continue] button
-Keyboard controls + onscreen joystick
-Current score and high score (different for different board sizes)
+Home -> Title + Instructions on how to play + Board sizes 3x3 to 8x8 [Done]
+Back to home option with curr board preserved -> then displaying a continue button
+Keyboard controls + onscreen joystick [Done]
+Current score and high score [Done]
 Random appearing tiles are 2, 4 with small to large appearing animation
 Reset board option with a confirm
 Undo move option (not with a confirm)
 Different speeds for tiles as per board size
-Same color for same numebr tiles
+Same color for same number tiles
 Tile collison expand animation
 ------------------------------------------------------------------------------------------------------------------------
 Collision -> whichever direction going, its (direction)most tiles collide to combine first,
