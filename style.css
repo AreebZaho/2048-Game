@@ -70,15 +70,18 @@ div {
 	font-weight: 700;
 }
 #boardSize {
-	height: 40px;
+	height: 80px;
 	width: 150px;
 	background-color: antiquewhite;
 	border-radius: 10px;
 	font-weight: 600;
 	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
 }
-#leftC,
-#rightC {
+#leftCaret,
+#rightCaret {
 	aspect-ratio: 1/1;
 	height: 25px;
 	font-size: 30px;
@@ -86,11 +89,11 @@ div {
 	position: absolute;
 	left: 15px;
 }
-#rightC {
+#rightCaret {
 	left: calc(150px - 25px - 15px);
 }
-#leftC:hover,
-#rightC:hover {
+#leftCaret:hover,
+#rightCaret:hover {
 	background-color: pink;
 	cursor: pointer;
 }
@@ -138,6 +141,17 @@ div {
 	aspect-ratio: 1/1;
 	height: calc((100vh - 50px) * 0.48);
 	background-color: gray;
+	padding: 2px;
+	display: flex;
+	flex-wrap: wrap;
+}
+.cell {
+	aspect-ratio: 1/1;
+	background-color: rgb(198, 194, 194);
+	margin: 2px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 #joystick {
 	aspect-ratio: 1/1;

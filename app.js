@@ -1,5 +1,5 @@
-const leftC = document.querySelector("#leftC");
-const rightC = document.querySelector("#rightC");
+const leftCaret = document.querySelector("#leftCaret");
+const rightCaret = document.querySelector("#rightCaret");
 const sizeTag = document.querySelector("#sizeTag");
 let size = 3;
 const startOrContinueButton = document.querySelector("#startOrContinueButton");
@@ -15,6 +15,7 @@ const popUpNo = document.querySelector("#no");
 let prevBoardConfiguration;
 let activeBoard;
 let preservedBoards = [];
+const board = document.querySelector("#board");
 const up = document.querySelector("#up");
 const left = document.querySelector("#left");
 const right = document.querySelector("#right");
@@ -22,33 +23,31 @@ const down = document.querySelector("#down");
 let moveInProcess = false;
 
 //! Home Page
-leftC.addEventListener("click", () => {
+leftCaret.addEventListener("click", () => {
 	size = size == 3 ? 8 : --size;
 	sizeTag.innerHTML = `${size}&nbsp;x&nbsp;${size}`;
-	preservedBoardExists();
+	preservedBoardOfCurrSizeExists();
 });
-rightC.addEventListener("click", () => {
+rightCaret.addEventListener("click", () => {
 	size = size == 8 ? 3 : ++size;
 	sizeTag.innerHTML = `${size}&nbsp;x&nbsp;${size}`;
-	preservedBoardExists();
+	preservedBoardOfCurrSizeExists();
 });
-startOrContinueButton.addEventListener("click", () => {
+startOrContinueButton.addEventListener("click", (e) => {
 	gameStarted = true;
 	if (startOrContinueButton.innerText == "Start Game") {
-		startGame();
+		renewActiveBoardArr();
 	} else {
-		//? inner text is "Continue Game"
-		activeBoard = preservedBoards.find((matrix) => matrix.length === size);
-		preservedBoards = preservedBoards.filter(
-			(matrix) => matrix !== activeBoard
-		);
-		homeAndPlayPageSwap();
-		makeBoard(false);
+		activeBoard = preservedBoards.find((boards) => boards.length === size);
+		removeFromPreservedBoards();
 	}
+	start(startOrContinueButton.innerText);
 });
 newGameButton.addEventListener("click", (e) => {
-	preservedBoards = preservedBoards.filter((arr) => arr.length !== size);
-	startGame();
+	gameStarted = true;
+	removeFromPreservedBoards();
+	renewActiveBoardArr();
+	start(newGameButton.innerText);
 });
 
 //! Pop Up
@@ -60,7 +59,8 @@ const popUpToggle = () => {
 	popUp.classList.toggle("hidden");
 };
 popUpYes.addEventListener("click", () => {
-	resetBoard();
+	renewActiveBoardArr();
+	populateBoard("New Game");
 	popUpToggle();
 });
 popUpNo.addEventListener("click", () => {
@@ -70,17 +70,16 @@ popUpNo.addEventListener("click", () => {
 //! Play Page
 homeButton.addEventListener("click", (e) => {
 	gameStarted = false;
-	playPage.classList.add("hidden");
-	homePage.classList.remove("hidden");
-	preservedBoards.push(activeBoard.map((innerArray) => [...innerArray]));
-	preservedBoardExists();
+	homeAndPlayPageSwap();
+	preservedBoards.push(activeBoard.map((arr) => [...arr]));
+	preservedBoardOfCurrSizeExists();
 });
 resetBoardButton.addEventListener("click", () => {
 	popUpToggle();
 });
 undoButton.addEventListener("click", () => {
-	activeBoard = prevBoardConfiguration.map((row) => [...row]);
-	makeBoard(false);
+	activeBoard = prevBoardConfiguration.map((arr) => [...arr]);
+	//* make board again with prevConfig
 });
 up.addEventListener("click", arrowUpMove);
 left.addEventListener("click", arrowLeftMove);
@@ -95,25 +94,13 @@ document.addEventListener("keydown", (e) => {
 });
 
 //! Functions
-function appearRandomCell(i, j, val) {}
-function generateRandomCell() {
-	const val = Math.floor(Math.random() * 2 + 1) * 2;
-	let i, j;
-	while (activeBoard[i][j] != 0) {
-		i = Math.floor(Math.random() * size);
-		j = Math.floor(Math.random() * size);
-	}
-	activeBoard[i][j] = val;
-	appearRandomCell(i, j, val);
+function renewActiveBoardArr() {
+	activeBoard = new Array(size).fill().map(() => new Array(size).fill(0));
 }
-function homeAndPlayPageSwap() {
-	homePage.classList.toggle("hidden");
-	playPage.classList.toggle("hidden");
+function removeFromPreservedBoards() {
+	preservedBoards = preservedBoards.filter((arr) => arr.length !== size);
 }
-function makeBoard(generateRandomCells) {
-	
-}
-function preservedBoardExists() {
+function preservedBoardOfCurrSizeExists() {
 	if (preservedBoards.find((matrix) => matrix.length === size)) {
 		startOrContinueButton.innerText = "Continue Game";
 		newGameButton.classList.remove("hidden");
@@ -122,14 +109,67 @@ function preservedBoardExists() {
 		newGameButton.classList.add("hidden");
 	}
 }
-function startGame() {
-	activeBoard = new Array(size).fill().map(() => new Array(size).fill(0));
-	homeAndPlayPageSwap();
-	makeBoard(true);
+function homeAndPlayPageSwap() {
+	homePage.classList.toggle("hidden");
+	playPage.classList.toggle("hidden");
 }
-function resetBoard() {}
+function start(start$newGameOrContinueGame) {
+	homeAndPlayPageSwap();
+	populateBoard(start$newGameOrContinueGame);
+}
+function populateBoard(start$newGameOrContinueGame) {
+	fillBoard();
+	if (
+		start$newGameOrContinueGame === "Start Game" ||
+		start$newGameOrContinueGame === "New Game"
+	) {
+		randomCellGeneration();
+		randomCellGeneration();
+	}
+}
+function fillBoard() {
+	const boardDimension = document.querySelector("#board").clientHeight;
+	while (board.firstChild) {
+		board.removeChild(board.firstChild);
+	}
+	for (let i = 0; i < size; ++i) {
+		for (let j = 0; j < size; ++j) {
+			const cell = document.createElement("div");
+			cell.style.height = `calc(${
+				(boardDimension - 4 * (size + 1)) / size
+			}px)`;
+			cell.classList.add("cell");
+			cell.id = `${i}${j}`;
+			//* when UNDO or CONTINUE GAME: make animation to have them appear on the empty cells
+			if (activeBoard[i][j] !== 0) {
+				cell.innerText = activeBoard[i][j];
+				cell.style.backgroundColor = "pink";
+			}
+			board.appendChild(cell);
+		}
+	}
+}
+function randomCellAppear(i, j, val) {
+	const cell = document.getElementById(`${i}${j}`);
+	//* animate the appearing of cell, in a function?
+	cell.innerText = val;
+	cell.style.backgroundColor = "pink";
+}
+function randomCellGeneration() {
+	const val = Math.floor(Math.random() * 2 + 1) * 2;
+	do {
+		i = Math.floor(Math.random() * size);
+		j = Math.floor(Math.random() * size);
+	} while (activeBoard[i][j] != 0);
+	activeBoard[i][j] = val;
+	randomCellAppear(i, j, val);
+}
 function arrowUpMove() {
-	console.log(1);
+	for (let i = 1; i < size; ++i) {
+		for (let j = 0; j < size; ++j) {
+			handleCellMotion(i, j, i - 1, j);
+		}
+	}
 }
 function arrowLeftMove() {
 	console.log(2);
@@ -139,4 +179,15 @@ function arrowRightMove() {
 }
 function arrowDownMove() {
 	console.log(4);
+}
+function handleCellMotion(currI, currJ, nextI, nextJ) {
+	const curr = activeBoard[currI][currJ];
+	const next = activeBoard[nextI][nextJ];
+	if (next === 0) {
+		activeBoard[nextI][nextJ] = activeBoard[currI][currJ];
+		activeBoard[currI][currJ] = 0;
+	}
+	if (curr === next) {
+		activeBoard[nextI][nextJ] = curr * 2;
+	}
 }
