@@ -6,7 +6,7 @@ const startOrContinueButton = document.querySelector("#startOrContinueButton");
 const newGameButton = document.querySelector("#newGameButton");
 let gameStarted = false;
 const homeButton = document.querySelector("#homeButton");
-const resetBoardButton = document.querySelector("#resetBoardButton");
+const restartGameButton = document.querySelector("#restartGameButton");
 const undoButton = document.querySelector("#undoButton");
 const popUpBg = document.querySelector("#popUpBg");
 const popUp = document.querySelector("#popUp");
@@ -21,6 +21,7 @@ const left = document.querySelector("#left");
 const right = document.querySelector("#right");
 const down = document.querySelector("#down");
 let moveInProcess = false;
+let cellMotionDistance;
 
 //! Home Page
 leftCaret.addEventListener("click", () => {
@@ -74,7 +75,7 @@ homeButton.addEventListener("click", (e) => {
 	preservedBoards.push(activeBoard.map((arr) => [...arr]));
 	preservedBoardOfCurrSizeExists();
 });
-resetBoardButton.addEventListener("click", () => {
+restartGameButton.addEventListener("click", () => {
 	popUpToggle();
 });
 undoButton.addEventListener("click", () => {
@@ -134,26 +135,31 @@ function fillBoard() {
 	}
 	for (let i = 0; i < size; ++i) {
 		for (let j = 0; j < size; ++j) {
-			const cell = document.createElement("div");
-			cell.style.height = `calc(${
-				(boardDimension - 4 * (size + 1)) / size
-			}px)`;
-			cell.classList.add("cell");
-			cell.id = `${i}${j}`;
-			//* when UNDO or CONTINUE GAME: make animation to have them appear on the empty cells
+			const cellContainer = document.createElement("div");
+			cellContainer.style.height = `calc(${
+				(boardDimension - 4 * (size + 1) - 1) / size
+				}px)`;
+			cellMotionDistance = `${((boardDimension - 4 * (size + 1) - 1) / size) + 4}px`;
+			cellContainer.classList.add("cellContainer");
+			cellContainer.id = `${i}${j}`;
+			//* when UNDO or CONTINUE GAME
 			if (activeBoard[i][j] !== 0) {
+				const cell = document.createElement("div");
+				cell.classList.add("cell");
 				cell.innerText = activeBoard[i][j];
-				cell.style.backgroundColor = "pink";
+				cellContainer.appendChild(cell);
 			}
-			board.appendChild(cell);
+			board.appendChild(cellContainer);
 		}
 	}
 }
 function randomCellAppear(i, j, val) {
-	const cell = document.getElementById(`${i}${j}`);
+	const cellContainer = document.getElementById(`${i}${j}`);
 	//* animate the appearing of cell, in a function?
-	cell.innerText = val;
-	cell.style.backgroundColor = "pink";
+	const cell = document.createElement("div");
+	cell.classList.add("cell");
+	cell.innerText = activeBoard[i][j];
+	cellContainer.appendChild(cell);
 }
 function randomCellGeneration() {
 	const val = Math.floor(Math.random() * 2 + 1) * 2;
@@ -167,7 +173,10 @@ function randomCellGeneration() {
 function arrowUpMove() {
 	for (let i = 1; i < size; ++i) {
 		for (let j = 0; j < size; ++j) {
-			handleCellMotion(i, j, i - 1, j);
+			if (activeBoard[i][j] !== 0) {
+				console.log(1);
+				handleCellMotion(i, j, i - 1, j);
+			}
 		}
 	}
 }
@@ -183,9 +192,11 @@ function arrowDownMove() {
 function handleCellMotion(currI, currJ, nextI, nextJ) {
 	const curr = activeBoard[currI][currJ];
 	const next = activeBoard[nextI][nextJ];
+	const cell = document.getElementById(`${currI}${currJ}`).firstElementChild;
 	if (next === 0) {
 		activeBoard[nextI][nextJ] = activeBoard[currI][currJ];
 		activeBoard[currI][currJ] = 0;
+		cell.style.top = `10px`;
 	}
 	if (curr === next) {
 		activeBoard[nextI][nextJ] = curr * 2;
