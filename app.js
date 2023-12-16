@@ -21,7 +21,6 @@ const left = document.querySelector("#left");
 const right = document.querySelector("#right");
 const down = document.querySelector("#down");
 let moveInProcess = false;
-let cellMotionDistance;
 
 //! Home Page
 leftCaret.addEventListener("click", () => {
@@ -118,57 +117,86 @@ function start(start$newGameOrContinueGame) {
 	homeAndPlayPageSwap();
 	populateBoard(start$newGameOrContinueGame);
 }
+function boardDimension() {
+	return board.clientHeight;
+}
+function cellDimension() {
+	return `${(boardDimension() - 4 * (size + 1) - 1) / size}px`;
+}
+function valueLengthFactor(i, j) {
+	const val = Math.floor(Math.log10(activeBoard[i][j]));
+	return (val === 0 || val === 1) ? 1 : (val === 2) ? 0.8 : 0.5;
+}
+function cellMotionDistance() {
+	return `${parseFloat(cellDimension()) + 4}px`;
+}
+function cellMotionTime() {
+	return size;
+}
 function populateBoard(start$newGameOrContinueGame) {
-	fillBoard();
+	while (board.firstChild) {
+		board.removeChild(board.firstChild);
+	}
+	fillCellContainers();
+	fillCells();
 	if (
 		start$newGameOrContinueGame === "Start Game" ||
 		start$newGameOrContinueGame === "New Game"
 	) {
-		randomCellGeneration();
-		randomCellGeneration();
+		randomCell();
+		randomCell();
 	}
 }
-function fillBoard() {
-	const boardDimension = document.querySelector("#board").clientHeight;
-	while (board.firstChild) {
-		board.removeChild(board.firstChild);
-	}
+function fillCellContainers() {
+	const cellDimension = `${(boardDimension() - 4 * (size + 1) - 1) / size}px`;
 	for (let i = 0; i < size; ++i) {
 		for (let j = 0; j < size; ++j) {
 			const cellContainer = document.createElement("div");
-			cellContainer.style.height = `calc(${
-				(boardDimension - 4 * (size + 1) - 1) / size
-				}px)`;
-			cellMotionDistance = `${((boardDimension - 4 * (size + 1) - 1) / size) + 4}px`;
+			cellContainer.style.height = cellDimension;
 			cellContainer.classList.add("cellContainer");
 			cellContainer.id = `${i}${j}`;
-			//* when UNDO or CONTINUE GAME
-			if (activeBoard[i][j] !== 0) {
-				const cell = document.createElement("div");
-				cell.classList.add("cell");
-				cell.innerText = activeBoard[i][j];
-				cellContainer.appendChild(cell);
-			}
 			board.appendChild(cellContainer);
 		}
 	}
 }
-function randomCellAppear(i, j, val) {
-	const cellContainer = document.getElementById(`${i}${j}`);
-	//* animate the appearing of cell, in a function?
+function fillCells() {
+	for (let i = 0; i < size; ++i) {
+		for (let j = 0; j < size; ++j) {
+			if (activeBoard[i][j] !== 0) {
+				board.appendChild(createCell(i, j));
+			}
+		}
+	}
+}
+function createCell(i, j) {
 	const cell = document.createElement("div");
 	cell.classList.add("cell");
+	cell.style.height = cellDimension();
 	cell.innerText = activeBoard[i][j];
-	cellContainer.appendChild(cell);
+	cell.style.fontSize = `${
+		parseInt(cellDimension().match(/^\d+/)[0]) * 0.8 * valueLengthFactor(i, j)
+	}px`;
+	cell.id = `c${i}${j}`;
+	const box = document.getElementById(`${i}${j}`).getBoundingClientRect();
+	cell.style.top = `${box.top}px`;
+	cell.style.left = `${box.left}px`;
+	cell.style.width = `${box.width}px`;
+	cell.style.height = `${box.height}px`;
+	return cell;
 }
-function randomCellGeneration() {
-	const val = Math.floor(Math.random() * 2 + 1) * 2;
+function randomCell() {
 	do {
 		i = Math.floor(Math.random() * size);
 		j = Math.floor(Math.random() * size);
 	} while (activeBoard[i][j] != 0);
+	const val = Math.floor(Math.random() * 2 + 1) * 2;
 	activeBoard[i][j] = val;
-	randomCellAppear(i, j, val);
+	randomCellAppear(i, j);
+}
+function randomCellAppear(i, j) {
+	const cell = createCell(i, j);
+	//* appearing cell animation
+	board.appendChild(cell);
 }
 function arrowUpMove() {
 	for (let i = 1; i < size; ++i) {
