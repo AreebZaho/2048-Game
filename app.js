@@ -121,13 +121,13 @@ function boardDimension() {
 	return board.clientHeight;
 }
 function cellDimension() {
-	return `${(boardDimension() - 4 * (size + 1) - 1) / size}px`;
+	return `${(boardDimension() - 8 * (size + 1) - 1) / size}px`;
 }
 function cellMotionDistance() {
-	return `${parseFloat(cellDimension()) + 4}px`;
+	return `${parseFloat(cellDimension()) + 8}px`;
 }
 function cellMotionTime() {
-	// if (size === 3)
+	
 }
 function populateBoard(start$newGameOrContinueGame) {
 	while (board.firstChild) {
@@ -145,11 +145,10 @@ function populateBoard(start$newGameOrContinueGame) {
 	prevBoardConfiguration = activeBoard.map((arr) => [...arr]);
 }
 function fillCellContainers() {
-	const cellDimension = `${(boardDimension() - 4 * (size + 1) - 1) / size}px`;
 	for (let i = 0; i < size; ++i) {
 		for (let j = 0; j < size; ++j) {
 			const cellContainer = document.createElement("div");
-			cellContainer.style.height = cellDimension;
+			cellContainer.style.height = cellDimension();
 			cellContainer.classList.add("cellContainer");
 			cellContainer.id = `${i}${j}`;
 			board.appendChild(cellContainer);

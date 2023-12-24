@@ -141,7 +141,7 @@ div {
 	aspect-ratio: 1/1;
 	height: calc((100vh - 50px) * 0.48);
 	background-color: gray;
-	padding: 2px;
+	padding: 4px;
 	display: flex;
 	flex-wrap: wrap;
 	border-radius: 3px;
@@ -154,7 +154,7 @@ div {
 .cellContainer {
 	aspect-ratio: 1/1;
 	background-color: rgb(198, 194, 194);
-	margin: 2px;
+	margin: 4px;
 	border-radius: 3px;
 }
 .cell {
