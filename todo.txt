@@ -1,30 +1,11 @@
+GitHub + Repo + LinkedIn anchors
+Home page css
+Undo button
+Scoreboards
+Carets for arrows
+Play page css
+Different tile colors for different numbers
+Tile appearing animation
+Tile motion animation
+Tile collision + enlarge animation
 Dark mode toggler
-Home -> Title + Instructions on how to play + Board sizes 3x3 to 8x8 [Done]
-Back to home option with curr board preserved -> then displaying a continue button
-Keyboard controls + onscreen joystick [Done]
-Current score and high score [Done]
-Random appearing tiles are 2, 4 with small to large appearing animation
-Reset board option with a confirm
-Undo move option (not with a confirm)
-Different speeds for tiles as per board size
-Same color for same number tiles
-Tile collison expand animation
-------------------------------------------------------------------------------------------------------------------------
-Collision -> whichever direction going, its (direction)most tiles collide to combine first,
-    eg: 2-2-4 present and a left move makes it 4-4
-    if the tiles are same then make the tile approaching the other tile disappear and the other tile's value multiply x2
-    NOTE: 2-2-2-2 after left/right move become 4-4
-New tile appears simultaneuosly with collison happening 
-------------------------------------------------------------------------------------------------------------------------
-Game over when board filled or 2048 achieved
-Score += value of 2 colliding tile == value of new formed tile
-------------------------------------------------------------------------------------------------------------------------
-2D Array as game board
-L/R/D/U => j-1/j+1/i+1/i-1
-Have a set that contains unoccupied cell indices
-L/R/D/U move taken => adding+removing indices from set [Process: tiles move -> collisons -> new random tile]
-Add to set if collison occurs 
-if(set is not empty) => generateRandomTile()
-if(set is empty && no move available for tile collision) => declareLoss()
-Tile motion => eg: if right move -> move rows from rightmost row to leftmost then, collisons occuring (if any)
-After any collision: if(tileVal == 2048) declareWin()
