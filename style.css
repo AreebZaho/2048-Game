@@ -7,51 +7,62 @@
 a {
 	text-decoration: none;
 }
-#navbar {
-	height: 50px;
-	background-color: pink;
-	display: flex;
-	justify-content: space-around;
-}
-#navbar span,
 div {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 }
-.fa-github,
-.fa-moon {
-	font-size: larger;
-	margin: 0px 2px;
+/*****************************************************/
+#navbar {
+	height: 50px;
+	background: #34495e;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	font-size: 1.6rem;
 }
-#viewRepo {
-	padding: 5px 10px;
-	border-radius: 15px;
-	font-weight: 600;
+#anchors {
+	display: flex;
+	gap: 5vw;
 }
 #darkMode {
+	background-color: yellow;
 	height: 30px;
 	aspect-ratio: 1/1;
 	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
-#viewRepo:hover,
 #darkMode:hover {
 	background-color: aqua;
 	cursor: pointer;
 }
+/*****************************************************/
 .homePage,
 .playPage {
+	height: calc(100vh - 50px);
 	display: flex;
 	flex-direction: column;
-	align-items: center;
+	/* background: linear-gradient(to bottom right, #2c3e50, #4a627a); */
+	background: linear-gradient(to bottom, #ecf0f1, #bdc3c7);
+}
+/*****************************************************/
+@media (orientation: landscape) {
+	.playPage {
+		flex-direction: row;
+		gap: 
+	}
 }
 #homeText {
 	background-color: bisque;
-	margin: 40px 10%;
 	display: flex;
 	flex-direction: column;
 	text-align: center;
-	padding: 20px 30px;
+	padding: 20px 25px;
+	margin: 15px;
+	/* position: absolute;
+	top: calc((100vh - 50px) * 0.09); */
 }
 #title {
 	font-weight: bolder;
@@ -70,14 +81,16 @@ div {
 	font-weight: 700;
 }
 #boardSize {
-	height: 80px;
-	width: 150px;
 	background-color: antiquewhite;
+	height: 100px;
+	width: 170px;
 	border-radius: 10px;
 	font-weight: 600;
-	position: relative;
+	font-size: 1.2rem;
 	display: flex;
 	flex-direction: column;
+	margin: 20px;
+	position: relative;
 	gap: 20px;
 }
 #leftCaret,
@@ -90,22 +103,31 @@ div {
 	left: 15px;
 }
 #rightCaret {
-	left: calc(150px - 25px - 15px);
+	left: calc(170px - 25px - 15px);
 }
 #leftCaret:hover,
 #rightCaret:hover {
 	background-color: pink;
 	cursor: pointer;
 }
-#startOrContinueButton,
-#newGameButton {
-	margin-top: 30px;
-	height: 30px;
-	width: 150px;
+#homePageButtons > div {
 	background-color: antiquewhite;
+	margin-top: 30px;
+	height: 40px;
+	width: 170px;
+	border-radius: 10px;
 	font-weight: 600;
+	font-size: 1.2rem;
 	cursor: pointer;
+	/* position: absolute; */
 }
+/* #startOrContinueButton {
+	top: calc((100vh - 50px) * 0.63);
+}
+#newGameButton {
+	top: calc((100vh - 50px) * 0.73);
+} */
+/*****************************************************/
 #playDetails {
 	height: calc((100vh - 50px) * 0.15);
 	background-color: beige;

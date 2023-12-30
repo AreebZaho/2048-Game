@@ -1,9 +1,9 @@
-GitHub + Repo + LinkedIn anchors
+GitHub + Repo + LinkedIn anchors [DONE]
 Home page css
-Undo button
+Undo button with prevBoardConfiguration
 Scoreboards
-Carets for arrows
 Play page css
+Carets for arrows
 Different tile colors for different numbers
 Tile appearing animation
 Tile motion animation

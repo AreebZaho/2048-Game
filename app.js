@@ -78,7 +78,7 @@ restartGameButton.addEventListener("click", () => {
 });
 undoButton.addEventListener("click", () => {
 	activeBoard = prevBoardConfiguration.map((arr) => [...arr]);
-	populateBoard("Continue Game");
+	populateBoard("Continue Game ?");
 });
 up.addEventListener("click", arrowUpMove);
 left.addEventListener("click", arrowLeftMove);
@@ -101,10 +101,12 @@ function removeFromPreservedBoards() {
 }
 function preservedBoardOfCurrSizeExists() {
 	if (preservedBoards.find((matrix) => matrix.length === size)) {
-		startOrContinueButton.innerText = "Continue Game";
+		startOrContinueButton.innerText = "Continue Game ?";
+		startOrContinueButton.style.fontSize = "1rem";
 		newGameButton.classList.remove("hidden");
 	} else {
 		startOrContinueButton.innerText = "Start Game";
+		startOrContinueButton.style.fontSize = "1.2rem";
 		newGameButton.classList.add("hidden");
 	}
 }
