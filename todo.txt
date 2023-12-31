@@ -1,4 +1,5 @@
 GitHub + Repo + LinkedIn anchors [DONE]
+Dynamic Portrait/Landscape layout
 Home page css
 Undo button with prevBoardConfiguration
 Scoreboards
