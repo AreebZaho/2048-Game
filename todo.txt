@@ -4,7 +4,7 @@ Home page css
 Undo button with prevBoardConfiguration
 Scoreboards
 Play page css
-Carets for arrows
+Motion with touch
 Different tile colors for different numbers
 Tile appearing animation
 Tile motion animation

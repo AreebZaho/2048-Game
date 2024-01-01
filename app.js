@@ -16,10 +16,6 @@ let prevBoardConfiguration;
 let activeBoard;
 let preservedBoards = [];
 const board = document.querySelector("#board");
-const up = document.querySelector("#up");
-const left = document.querySelector("#left");
-const right = document.querySelector("#right");
-const down = document.querySelector("#down");
 let moveInProcess = false;
 let anyCellMotionOnBoardPreviously = false;
 
@@ -70,7 +66,7 @@ popUpNo.addEventListener("click", () => {
 homeButton.addEventListener("click", (e) => {
 	gameStarted = false;
 	homeAndPlayPageSwap();
-	preservedBoards.push(activeBoard.map((arr) => [...arr]));
+	// preservedBoards.push(activeBoard.map((arr) => [...arr]));
 	preservedBoardOfCurrSizeExists();
 });
 restartGameButton.addEventListener("click", () => {
@@ -80,10 +76,6 @@ undoButton.addEventListener("click", () => {
 	activeBoard = prevBoardConfiguration.map((arr) => [...arr]);
 	populateBoard("Continue Game ?");
 });
-up.addEventListener("click", arrowUpMove);
-left.addEventListener("click", arrowLeftMove);
-right.addEventListener("click", arrowRightMove);
-down.addEventListener("click", arrowDownMove);
 document.addEventListener("keydown", (e) => {
 	if (!gameStarted || isPopUpOpen() || moveInProcess) return;
 	if (e.key === "ArrowUp") arrowUpMove();
@@ -114,13 +106,13 @@ function homeAndPlayPageSwap() {
 	homePage.classList.toggle("hidden");
 	playPage.classList.toggle("hidden");
 }
+function boardDimension() {
+	return board.clientHeight;
+}
 function start(start$newGameOrContinueGame) {
 	homeAndPlayPageSwap();
 	gameStarted = true;
 	populateBoard(start$newGameOrContinueGame);
-}
-function boardDimension() {
-	return board.clientHeight;
 }
 function cellDimension() {
 	return `${(boardDimension() - 8 * (size + 1) - 1) / size}px`;

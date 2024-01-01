@@ -24,7 +24,7 @@ div {
 }
 #anchors {
 	display: flex;
-	gap: 5vw;
+	gap: 40px;
 }
 #darkMode {
 	background-color: yellow;
@@ -126,6 +126,116 @@ div {
 	font-size: 1.2rem;
 	cursor: pointer;
 }
+/*****************************************************/
+#playPage {
+	gap: 3.5vh;
+}
+#buttonsDiv {
+	background-color: pink;
+	font-size: 5vh;
+	display: flex;
+	gap: calc((65vh - 16vh) / 8);
+}
+#buttonsDiv > div {
+	background-color: beige;
+	padding: 10px;
+	border-radius: 50%;
+	cursor: pointer;
+}
+#board {
+	aspect-ratio: 1/1;
+	height: calc((100vh - 50px) * 0.65);
+	background-color: gray;
+	padding: 4px;
+	display: flex;
+	flex-wrap: wrap;
+	border-radius: 3px;
+}
+.cellContainer {
+	aspect-ratio: 1/1;
+	background-color: rgb(198, 194, 194);
+	margin: 4px;
+	border-radius: 3px;
+}
+.cell {
+	aspect-ratio: 1/1;
+	background-color: yellow;
+	font-family: "Lato", sans-serif;
+	font-weight: 900;
+	padding: 5px;
+	position: absolute;
+	border-radius: 3px;
+}
+#scoreCards {
+	background-color: pink;
+	display: flex;
+	gap: calc((65vh - 16vh) / 4);
+}
+#scoreCards > div {
+	text-align: center;
+	background-color: aqua;
+	font-size: 4vh;
+	font-weight: 600;
+	padding: 8px 15px 10px;
+	border-radius: 10px;
+}
+/*****************************************************/
+.popUpBg {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100vh;
+	width: 100vw;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+.popUp {
+	background-color: beige;
+	height: 120px;
+	width: 240px;
+	border-radius: 20px;
+	font-weight: 500;
+	display: flex;
+	flex-direction: column;
+	position: fixed;
+	top: calc((100vh - 50px - 60px) / 2);
+	left: calc((100vw - 240px) / 2);
+}
+#popUpText {
+	height: 65%;
+	width: 100%;
+	border-bottom: 2px solid black;
+	padding: 5px;
+	font-size: 0.8rem;
+	text-align: center;
+}
+#popUpOptions {
+	height: calc(100% - 65%);
+	width: 100%;
+}
+#popUpOptions > div {
+	height: 100%;
+	width: 50%;
+	display: flex;
+	justify-content: center;
+}
+#yes {
+	border-right: 2px solid black;
+	color: rgb(18, 208, 225);
+	border-bottom-left-radius: 20px;
+}
+#no {
+	color: red;
+	border-bottom-right-radius: 20px;
+}
+#yes:hover,
+#no:hover {
+	background-color: rgb(200, 197, 197);
+	cursor: pointer;
+}
+.hidden {
+	display: none;
+}
+/*****************************************************/
 @media (min-width: 1080px) and (max-height: 570px) {
 	.homePage {
 		flex-direction: row;
@@ -237,148 +347,250 @@ div {
 	}
 }
 /*****************************************************/
-#playDetails {
-	height: calc((100vh - 50px) * 0.15);
-	background-color: beige;
-	margin: calc((100vh - 50px) * 0.0275);
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	padding: 1.5vh;
-}
-#scoreCards {
-	text-align: center;
-	background-color: pink;
-	gap: 60px;
-	height: 5vh;
-}
-#scoreCards > div {
-	height: inherit;
-	background-color: aqua;
-	font-size: 2vh;
-	display: flex;
-	flex-direction: column;
-	padding: 2px 5px;
-	border-radius: 10px;
-}
-#buttons {
-	font-size: 3.5vh;
-	gap: 10vw;
-}
-#buttons > div {
-	cursor: pointer;
-}
-#board {
-	aspect-ratio: 1/1;
-	height: calc((100vh - 50px) * 0.48);
-	background-color: gray;
-	padding: 4px;
-	display: flex;
-	flex-wrap: wrap;
-	border-radius: 3px;
-}
-@media (max-width: 468px) {
+@media (min-width: 1200px) {
 	#board {
-		height: 95vw;
+		height: 75vh;
+	}
+	#playPage {
+		flex-direction: row;
+	}
+	#buttonsDiv, #scoreCards {
+		flex-direction: column;
 	}
 }
-.cellContainer {
-	aspect-ratio: 1/1;
-	background-color: rgb(198, 194, 194);
-	margin: 4px;
-	border-radius: 3px;
+@media (max-width: 1200px) and (max-height: 1000px) {
+	#playPage {
+		flex-direction: row;
+	}
+	#buttonsDiv, #scoreCards {
+		flex-direction: column;
+	}
 }
-.cell {
-	aspect-ratio: 1/1;
-	background-color: yellow;
-	font-family: "Lato", sans-serif;
-	font-weight: 900;
-	padding: 5px;
-	position: absolute;
-	border-radius: 3px;
+@media (max-width: 940px) and (max-height: 1000px) {
+	#board {
+		height: 50vh;
+	}
 }
-#joystick {
-	aspect-ratio: 1/1;
-	height: calc((100vh - 50px) * 0.24);
-	background-color: beige;
-	margin: calc((100vh - 50px) * 0.0275);
-	border-radius: 50%;
-	position: relative;
+@media (max-width: 940px) and (max-height: 900px) {
+	#board {
+		height: 60vh;
+	}
 }
-#joystick > div {
-	height: 6.5vh;
-	aspect-ratio: 1/1;
-	font-size: 6.5vh;
-	background-color: pink;
-	border-radius: 50%;
-	position: absolute;
-	padding: 5px;
-	cursor: pointer;
+@media (max-width: 850px) and (max-height: 1000px) {
+	#board {
+		height: 40vh;
+	}
+	#playPage {
+		flex-direction: row;
+	}
+	#buttonsDiv, #scoreCards {
+		flex-direction: column;
+	}
 }
-#up {
-	top: 6%;
+@media (max-width: 850px) and (max-height: 820px) {
+	#board {
+		height: 60vh;
+	}
 }
-#left {
-	left: 6%;
+@media (max-width: 768px) and (min-height: 600px) {
+	#board {
+		height: 60vh;
+	}
+	#playPage {
+		flex-direction: column;
+	}
+	#buttonsDiv, #scoreCards {
+		flex-direction: row;
+	}
 }
-#right {
-	right: 6%;
+@media (max-width: 768px) and (max-height: 600px) {
+	#board {
+		height: 70vh;
+	}
+	#playPage {
+		flex-direction: row;
+	}
+	#buttonsDiv, #scoreCards {
+		flex-direction: column;
+	}
 }
-#down {
-	bottom: 6%;
+@media (max-width: 680px) {
+	#board {
+		height: 80vw;
+	}
 }
-.popUpBg {
-	position: fixed;
-	top: 0;
-	left: 0;
-	height: 100vh;
-	width: 100vw;
-	background-color: rgba(0, 0, 0, 0.5);
+@media (max-width: 680px) and (max-height: 800px) {
+	#playPage {
+		gap : 2vw;
+	}
 }
-.popUp {
-	background-color: beige;
-	height: 120px;
-	width: 240px;
-	border-radius: 20px;
-	font-weight: 500;
-	display: flex;
-	flex-direction: column;
-	position: fixed;
-	top: calc((100vh - 50px - 60px) / 2);
-	left: calc((100vw - 240px) / 2);
+@media (max-width: 680px) and (max-height: 700px) {
+	#board {
+		height: 60vh;
+	}
 }
-#popUpText {
-	height: 65%;
-	width: 100%;
-	border-bottom: 2px solid black;
-	padding: 5px;
-	font-size: 0.8rem;
-	text-align: center;
+@media (max-width: 680px) and (max-height: 500px) {
+	#board {
+		height: 70vh;
+	}
 }
-#popUpOptions {
-	height: calc(100% - 65%);
-	width: 100%;
+@media (max-width: 580px) {
+	#scoreCards {
+		flex-direction: column;
+		gap: 5vh;
+	} 
 }
-#popUpOptions > div {
-	height: 100%;
-	width: 50%;
-	display: flex;
-	justify-content: center;
+@media (max-width: 580px) and (max-height: 800px) {
+	#playPage {
+		gap: 3vh;
+	}
+	#scoreCards {
+		flex-direction: row;
+	} 
 }
-#yes {
-	border-right: 2px solid black;
-	color: rgb(18, 208, 225);
-	border-bottom-left-radius: 20px;
+@media (max-width: 580px) and (max-height: 600px) {
+	#board {
+		height: 60vh;
+	}
+	#playPage {
+		flex-direction: column;
+		gap: 2vh;
+	}
+	#buttonsDiv, #scoreCards {
+		flex-direction: row;
+	}
 }
-#no {
-	color: red;
-	border-bottom-right-radius: 20px;
+@media (max-width: 580px) and (max-height: 468px) {
+	#playPage {
+		flex-direction: row;
+		gap: 3.5vh;
+	}
+	#buttonsDiv, #scoreCards {
+		flex-direction: column;
+	}
 }
-#yes:hover,
-#no:hover {
-	background-color: rgb(200, 197, 197);
-	cursor: pointer;
+@media (max-width: 470px) {
+	#board {
+		height: 85vw;
+	}
 }
-.hidden {
-	display: none;
+@media (max-width: 470px) and (max-height: 570px) {
+	#board {
+		height: 60vh;
+	}
+}
+@media (max-width: 470px) and (max-height: 470px) {
+	#board {
+		height: 50vh;
+	}
+}
+@media (max-width: 470px) and (max-height: 420px) {
+	#board {
+		height: 60vh;
+	}
+}
+@media (max-width: 420px) and (max-height: 470px) {
+	#playPage {
+		gap: 2vw;
+	}
+}
+@media (max-width: 400px) and (max-height: 470px) {
+	#board {
+		height: 50vh;
+	}
+}
+@media (max-width: 400px) and (max-height: 400px) {
+	#board {
+		height: 60vh;
+	}
+}
+@media (max-width: 395px) {
+	#buttonsDiv {
+		gap: 10vw;
+	}
+}
+@media (max-width: 395px) and (min-height: 420px) {
+	#playPage {
+		flex-direction: column;
+	}
+	#buttonsDiv {
+		flex-direction: row;
+	}
+}
+@media (max-width: 395px) and (max-height: 468px) {
+	#scoreCards {
+		flex-direction: row;
+	}
+}
+@media (max-width: 395px) and (max-height: 420px) {
+	#buttonsDiv {
+		gap: 10vh;
+	}
+	#scoreCards {
+		flex-direction: column;
+	}
+}
+@media (max-width: 375px) and (max-height: 400px) {
+	#board {
+		height: 50vh;
+	}
+}
+@media (max-width: 375px) and (max-height: 350px) {
+	#board {
+		height: 65vh;
+	}
+}
+@media (max-width: 360px) and (max-height: 570px) {
+	#board {
+		height: 80vw;
+	}
+}
+@media (max-width: 360px) and (max-height: 470px) {
+	#board {
+		height: 70vw;
+	}
+}
+@media (max-width: 360px) and (max-height: 420px) {
+	#board {
+		height: 45vh;
+	}
+}
+@media (max-width: 360px) and (max-height: 370px) {
+	#board {
+		height: 55vh;
+	}
+}
+@media (max-width: 340px) and (min-height: 800px) {
+	#buttonsDiv {
+		margin-top: 3vh;
+	}
+}
+@media (max-width: 340px) and (max-height: 800px) {
+	#buttonsDiv {
+		margin-top: 0;
+	}
+}
+@media (max-width: 340px) and (max-height: 420px) {
+	#board {
+		height: 50vh;
+	}
+	#playPage {
+		flex-direction: column;
+	}
+	#buttonsDiv, #scoreCards {
+		flex-direction: row;
+	}
+}
+@media (max-width: 340px) and (max-height: 340px) {
+	#playPage {
+		flex-direction: row;
+	}
+	#buttonsDiv, #scoreCards {
+		flex-direction: column;
+	}
+}
+@media (max-width: 340px) and (max-height: 300px) {
+	#board {
+		height: 60vh;
+	}
 }
