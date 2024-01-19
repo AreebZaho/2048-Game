@@ -13,11 +13,18 @@ const popUp = document.querySelector("#popUp");
 const popUpYes = document.querySelector("#yes");
 const popUpNo = document.querySelector("#no");
 let prevBoardConfiguration;
-let activeBoard;
+let auxiPrevBoardConfiguration;
 let preservedBoards = [];
+let activeBoard;
+const preservedScores = new Array(6);
+const preservedBestScores = new Array(6);
 const board = document.querySelector("#board");
 let moveInProcess = false;
 let anyCellMotionOnBoardPreviously = false;
+let prevScore = 0;
+let prevBest = 0;
+const score = document.querySelector("#score");
+const best = document.querySelector("#best");
 
 //! Home Page
 leftCaret.addEventListener("click", () => {
@@ -65,8 +72,10 @@ popUpNo.addEventListener("click", () => {
 //! Play Page
 homeButton.addEventListener("click", (e) => {
 	gameStarted = false;
+	preservedScores[size - 3] = prevScore;
+	preservedBestScores[size - 3] = prevBest;
 	homeAndPlayPageSwap();
-	// preservedBoards.push(activeBoard.map((arr) => [...arr]));
+	preservedBoards.push(activeBoard.map((arr) => [...arr]));
 	preservedBoardOfCurrSizeExists();
 });
 restartGameButton.addEventListener("click", () => {
@@ -74,14 +83,22 @@ restartGameButton.addEventListener("click", () => {
 });
 undoButton.addEventListener("click", () => {
 	activeBoard = prevBoardConfiguration.map((arr) => [...arr]);
+	score.innerHTML = `SCORE<br>${prevScore}`;
+	best.innerHTML = `BEST<br>${prevBest}`;
 	populateBoard("Continue Game ?");
 });
 document.addEventListener("keydown", (e) => {
 	if (!gameStarted || isPopUpOpen() || moveInProcess) return;
+	auxiPrevBoardConfiguration = activeBoard.map((row) => [...row]);
 	if (e.key === "ArrowUp") arrowUpMove();
 	if (e.key === "ArrowLeft") arrowLeftMove();
 	if (e.key === "ArrowRight") arrowRightMove();
 	if (e.key === "ArrowDown") arrowDownMove();
+	if (
+		JSON.stringify(auxiPrevBoardConfiguration) !==
+		JSON.stringify(activeBoard)
+	)
+		prevBoardConfiguration = auxiPrevBoardConfiguration;
 });
 
 //! Functions
@@ -120,9 +137,7 @@ function cellDimension() {
 function cellMotionDistance() {
 	return `${parseFloat(cellDimension()) + 8}px`;
 }
-function cellMotionTime() {
-	
-}
+function cellMotionTime() {}
 function populateBoard(start$newGameOrContinueGame) {
 	while (board.firstChild) {
 		board.removeChild(board.firstChild);
@@ -178,7 +193,8 @@ function setCellPositionAndId(cell, i, j) {
 }
 function setCellFontSize(cell, i, j) {
 	const val = Math.floor(Math.log10(activeBoard[i][j]));
-	const factor = val === 0 || val === 1 ? 1 : val === 2 ? 0.7 : 0.5;
+	const factor =
+		val === 0 || val === 1 ? 1 : val === 2 ? 0.7 : val === 4 ? 0.4 : 0.35;
 	cell.style.fontSize = `${
 		parseInt(cellDimension().match(/^\d+/)[0]) * 0.8 * factor
 	}px`;
@@ -188,14 +204,24 @@ function randomCell() {
 		i = Math.floor(Math.random() * size);
 		j = Math.floor(Math.random() * size);
 	} while (activeBoard[i][j] != 0);
-	const val = Math.floor(Math.random() * 2 + 1) * 2;
-	activeBoard[i][j] = val;
+	const val = Math.floor(Math.random() * 10);
+	activeBoard[i][j] = val == 9 ? 4 : 2;
 	randomCellAppear(i, j);
 }
 function randomCellAppear(i, j) {
 	const cell = createCell(i, j);
 	//* appearing cell animation
 	board.appendChild(cell);
+}
+function updateScores(i, j) {
+	prevScore = parseInt(score.innerHTML.substring(9));
+	prevBest = parseInt(best.innerHTML.substring(8));
+	//*animation + updation
+	score.innerHTML = `SCORE<br>${prevScore + activeBoard[i][j]}`;
+	best.innerHTML = `BEST<br>${Math.max(
+		prevScore + activeBoard[i][j],
+		prevBest
+	)}`;
 }
 //*move in process !== curr move -> return
 function arrowUpMove() {
@@ -207,7 +233,13 @@ function arrowUpMove() {
 		for (let i = 1; i < size; ++i) {
 			for (let j = 0; j < size; ++j) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(i, j, i - 1, j, "Motion");
+					anyCellMotionOnBoard = handleCellMove(
+						i,
+						j,
+						i - 1,
+						j,
+						"Motion"
+					);
 				}
 			}
 		}
@@ -217,7 +249,13 @@ function arrowUpMove() {
 	for (let i = 1; i < size; ++i) {
 		for (let j = 0; j < size; ++j) {
 			if (activeBoard[i][j] !== 0) {
-				anyCellMotionOnBoard = handleCellMove(i, j, i - 1, j, "Collision");
+				anyCellMotionOnBoard = handleCellMove(
+					i,
+					j,
+					i - 1,
+					j,
+					"Collision"
+				);
 			}
 		}
 	}
@@ -228,7 +266,13 @@ function arrowUpMove() {
 		for (let i = 1; i < size; ++i) {
 			for (let j = 0; j < size; ++j) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(i, j, i - 1, j, "Motion");
+					anyCellMotionOnBoard = handleCellMove(
+						i,
+						j,
+						i - 1,
+						j,
+						"Motion"
+					);
 				}
 			}
 		}
@@ -244,7 +288,13 @@ function arrowLeftMove() {
 		for (let j = 1; j < size; ++j) {
 			for (let i = 0; i < size; ++i) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(i, j, i, j - 1, "Motion");
+					anyCellMotionOnBoard = handleCellMove(
+						i,
+						j,
+						i,
+						j - 1,
+						"Motion"
+					);
 				}
 			}
 		}
@@ -254,7 +304,13 @@ function arrowLeftMove() {
 	for (let j = 1; j < size; ++j) {
 		for (let i = 0; i < size; ++i) {
 			if (activeBoard[i][j] !== 0) {
-				anyCellMotionOnBoard = handleCellMove(i, j, i, j - 1, "Collision");
+				anyCellMotionOnBoard = handleCellMove(
+					i,
+					j,
+					i,
+					j - 1,
+					"Collision"
+				);
 			}
 		}
 	}
@@ -265,7 +321,13 @@ function arrowLeftMove() {
 		for (let j = 1; j < size; ++j) {
 			for (let i = 0; i < size; ++i) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(i, j, i, j - 1,"Motion");
+					anyCellMotionOnBoard = handleCellMove(
+						i,
+						j,
+						i,
+						j - 1,
+						"Motion"
+					);
 				}
 			}
 		}
@@ -281,7 +343,13 @@ function arrowRightMove() {
 		for (let j = size - 2; j >= 0; --j) {
 			for (let i = 0; i < size; ++i) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(i, j, i, j + 1, "Motion");
+					anyCellMotionOnBoard = handleCellMove(
+						i,
+						j,
+						i,
+						j + 1,
+						"Motion"
+					);
 				}
 			}
 		}
@@ -291,7 +359,13 @@ function arrowRightMove() {
 	for (let j = size - 2; j >= 0; --j) {
 		for (let i = 0; i < size; ++i) {
 			if (activeBoard[i][j] !== 0) {
-				anyCellMotionOnBoard = handleCellMove(i, j, i, j + 1, "Collision");
+				anyCellMotionOnBoard = handleCellMove(
+					i,
+					j,
+					i,
+					j + 1,
+					"Collision"
+				);
 			}
 		}
 	}
@@ -302,7 +376,13 @@ function arrowRightMove() {
 		for (let j = size - 2; j >= 0; --j) {
 			for (let i = 0; i < size; ++i) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(i, j, i, j + 1, "Motion");
+					anyCellMotionOnBoard = handleCellMove(
+						i,
+						j,
+						i,
+						j + 1,
+						"Motion"
+					);
 				}
 			}
 		}
@@ -318,7 +398,13 @@ function arrowDownMove() {
 		for (let i = size - 2; i >= 0; --i) {
 			for (let j = 0; j < size; ++j) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(i, j, i + 1, j, "Motion");
+					anyCellMotionOnBoard = handleCellMove(
+						i,
+						j,
+						i + 1,
+						j,
+						"Motion"
+					);
 				}
 			}
 		}
@@ -328,7 +414,13 @@ function arrowDownMove() {
 	for (let i = size - 2; i >= 0; --i) {
 		for (let j = 0; j < size; ++j) {
 			if (activeBoard[i][j] !== 0) {
-				anyCellMotionOnBoard = handleCellMove(i, j, i + 1, j, "Collision");
+				anyCellMotionOnBoard = handleCellMove(
+					i,
+					j,
+					i + 1,
+					j,
+					"Collision"
+				);
 			}
 		}
 	}
@@ -339,7 +431,13 @@ function arrowDownMove() {
 		for (let i = size - 2; i >= 0; --i) {
 			for (let j = 0; j < size; ++j) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(i, j, i + 1, j, "Motion");
+					anyCellMotionOnBoard = handleCellMove(
+						i,
+						j,
+						i + 1,
+						j,
+						"Motion"
+					);
 				}
 			}
 		}
@@ -352,18 +450,26 @@ function handleCellMove(currI, currJ, nextI, nextJ, moveType) {
 	if (activeBoard[nextI][nextJ] === 0 && moveType === "Motion") {
 		activeBoard[nextI][nextJ] = activeBoard[currI][currJ];
 		activeBoard[currI][currJ] = 0;
-		currCell.style.transform = cellTranslateMotion(currI, currJ, nextI, nextJ);
+		currCell.style.transform = cellTranslateMotion(
+			currI,
+			currJ,
+			nextI,
+			nextJ
+		);
 		setCellPositionAndId(currCell, nextI, nextJ);
 		currCell.style.removeProperty("transform");
-		return anyCellMotionOnBoardPreviously = true;
+		return (anyCellMotionOnBoardPreviously = true);
 	}
-	if (activeBoard[currI][currJ] === activeBoard[nextI][nextJ] && moveType === "Collision") {
-		activeBoard[nextI][nextJ] *= 2;
+	if (
+		activeBoard[currI][currJ] === activeBoard[nextI][nextJ] &&
+		moveType === "Collision"
+	) {
 		activeBoard[currI][currJ] = 0;
-		nextCell.innerText = activeBoard[nextI][nextJ];
+		nextCell.innerText = activeBoard[nextI][nextJ] *= 2;
+		updateScores(nextI, nextJ);
 		setCellFontSize(nextCell, nextI, nextJ);
 		board.removeChild(currCell);
-		return anyCellMotionOnBoardPreviously = true;
+		return (anyCellMotionOnBoardPreviously = true);
 	}
 	return false;
 }
