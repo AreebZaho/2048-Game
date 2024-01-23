@@ -22,7 +22,7 @@ const board = document.querySelector("#board");
 let moveInProcess = false;
 let anyCellMotionOnBoardPreviously = false;
 let prevScore = 0;
-let prevBest = 0;
+let prevBestScore = 0;
 const score = document.querySelector("#score");
 const best = document.querySelector("#best");
 
@@ -71,9 +71,9 @@ popUpNo.addEventListener("click", () => {
 
 //! Play Page
 homeButton.addEventListener("click", (e) => {
-	gameStarted = false;
 	preservedScores[size - 3] = prevScore;
-	preservedBestScores[size - 3] = prevBest;
+	preservedBestScores[size - 3] = prevBestScore;
+	gameStarted = false;
 	homeAndPlayPageSwap();
 	preservedBoards.push(activeBoard.map((arr) => [...arr]));
 	preservedBoardOfCurrSizeExists();
@@ -83,22 +83,14 @@ restartGameButton.addEventListener("click", () => {
 });
 undoButton.addEventListener("click", () => {
 	activeBoard = prevBoardConfiguration.map((arr) => [...arr]);
-	score.innerHTML = `SCORE<br>${prevScore}`;
-	best.innerHTML = `BEST<br>${prevBest}`;
 	populateBoard("Continue Game ?");
+	//* both scores updates in populateBoard() based on start/new/continue so update here after func() call for correct values
+	score.innerHTML = `SCORE<br>${prevScore}`;
+	best.innerHTML = `BEST<br>${prevBestScore}`;
 });
 document.addEventListener("keydown", (e) => {
 	if (!gameStarted || isPopUpOpen() || moveInProcess) return;
-	auxiPrevBoardConfiguration = activeBoard.map((row) => [...row]);
-	if (e.key === "ArrowUp") arrowUpMove();
-	if (e.key === "ArrowLeft") arrowLeftMove();
-	if (e.key === "ArrowRight") arrowRightMove();
-	if (e.key === "ArrowDown") arrowDownMove();
-	if (
-		JSON.stringify(auxiPrevBoardConfiguration) !==
-		JSON.stringify(activeBoard)
-	)
-		prevBoardConfiguration = auxiPrevBoardConfiguration;
+	handleMove(e.key);
 });
 
 //! Functions
@@ -128,6 +120,20 @@ function boardDimension() {
 }
 function start(start$newGameOrContinueGame) {
 	homeAndPlayPageSwap();
+	//* scoreCards updation(s)
+	if (
+		start$newGameOrContinueGame === "Start Game" ||
+		start$newGameOrContinueGame === "New Game"
+	) {
+		prevScore = 0;
+		prevBestScore = preservedBestScores[size - 3] || 0;
+		score.innerHTML = `SCORE<br>0`;
+	} else {
+		prevScore = preservedScores[size - 3];
+		prevBestScore = preservedBestScores[size - 3]; //* won't be 0 since game CONTINUED
+		score.innerHTML = `SCORE<br>${preservedScores[size - 3]}`; //* continueGame always has preserved score
+	}
+	best.innerHTML = `BEST<br>${preservedBestScores[size - 3] || 0}`; //* if new size board for first time -> best = 0
 	gameStarted = true;
 	populateBoard(start$newGameOrContinueGame);
 }
@@ -213,15 +219,16 @@ function randomCellAppear(i, j) {
 	//* appearing cell animation
 	board.appendChild(cell);
 }
-function updateScores(i, j) {
-	prevScore = parseInt(score.innerHTML.substring(9));
-	prevBest = parseInt(best.innerHTML.substring(8));
+function updateScores(val) {
+	const currScore = parseInt(score.innerHTML.substring(9));
+	const currBestScore = parseInt(best.innerHTML.substring(8));
 	//*animation + updation
-	score.innerHTML = `SCORE<br>${prevScore + activeBoard[i][j]}`;
-	best.innerHTML = `BEST<br>${Math.max(
-		prevScore + activeBoard[i][j],
-		prevBest
-	)}`;
+	score.innerHTML = `SCORE<br>${currScore + val}`;
+	best.innerHTML = `BEST<br>${Math.max(currScore + val, currBestScore)}`;
+}
+function getCurrScores() {
+	prevScore = parseInt(score.innerHTML.substring(9));
+	prevBestScore = parseInt(best.innerHTML.substring(8));
 }
 //*move in process !== curr move -> return
 function arrowUpMove() {
@@ -444,6 +451,26 @@ function arrowDownMove() {
 	} while (anyCellMotionOnBoard);
 	if (anyCellMotionOnBoardPreviously) randomCell();
 }
+function handleMove(motionType) {
+	auxiPrevBoardConfiguration = activeBoard.map((row) => [...row]);
+	const currScore = parseInt(score.innerHTML.substring(9));
+	const currBestScore = parseInt(best.innerHTML.substring(8));
+	if (motionType === "ArrowUp") arrowUpMove();
+	if (motionType === "ArrowLeft") arrowLeftMove();
+	if (motionType === "ArrowRight") arrowRightMove();
+	if (motionType === "ArrowDown") arrowDownMove();
+	if (
+		!auxiPrevBoardConfiguration.every((row, i) =>
+			row.every((el, j) => el === activeBoard[i][j])
+		)
+	) {
+		prevBoardConfiguration = auxiPrevBoardConfiguration;
+	}
+	const newScore = parseInt(score.innerHTML.substring(9));
+	const newBestScore = parseInt(best.innerHTML.substring(8));
+	if (currScore !== newScore) prevScore = currScore;
+	if (currBestScore !== newBestScore) prevBestScore = currBestScore;
+}
 function handleCellMove(currI, currJ, nextI, nextJ, moveType) {
 	const currCell = document.getElementById(`c${currI}${currJ}`);
 	const nextCell = document.getElementById(`c${nextI}${nextJ}`);
@@ -466,7 +493,7 @@ function handleCellMove(currI, currJ, nextI, nextJ, moveType) {
 	) {
 		activeBoard[currI][currJ] = 0;
 		nextCell.innerText = activeBoard[nextI][nextJ] *= 2;
-		updateScores(nextI, nextJ);
+		updateScores(activeBoard[nextI][nextJ]);
 		setCellFontSize(nextCell, nextI, nextJ);
 		board.removeChild(currCell);
 		return (anyCellMotionOnBoardPreviously = true);
