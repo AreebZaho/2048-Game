@@ -1,14 +1,17 @@
 GitHub + Repo + LinkedIn anchors [DONE]
-Dynamic Portrait/Landscape layout [DONE]
+Media queries home page [DONE]
+Media queries play page [DONE]
 2 90% 4 10% spawn probability [DONE]
 131072 max tile number [DONE]
 Undo button [DONE]
-Scoreboards
-Different tile colors for different numbers
-Motion with touch
+Scoreboards [DONE]
+Different tile colors for different numbers [DONE]
+Motion with touch [DONE]
 Tile appearing animation
 Tile motion animation
 Tile collision + enlarge animation
+Win visuals
+Game over visuals
 Home page css
 Play page css
 Dark mode toggler

@@ -30,12 +30,12 @@ const best = document.querySelector("#best");
 leftCaret.addEventListener("click", () => {
 	size = size == 3 ? 8 : --size;
 	sizeTag.innerHTML = `${size}&nbsp;x&nbsp;${size}`;
-	preservedBoardOfCurrSizeExists();
+	preservedBoardOfCurrSizeExistsAndUpdateBoardPadding();
 });
 rightCaret.addEventListener("click", () => {
 	size = size == 8 ? 3 : ++size;
 	sizeTag.innerHTML = `${size}&nbsp;x&nbsp;${size}`;
-	preservedBoardOfCurrSizeExists();
+	preservedBoardOfCurrSizeExistsAndUpdateBoardPadding();
 });
 startOrContinueButton.addEventListener("click", (e) => {
 	if (startOrContinueButton.innerText == "Start Game") {
@@ -76,22 +76,60 @@ homeButton.addEventListener("click", (e) => {
 	gameStarted = false;
 	homeAndPlayPageSwap();
 	preservedBoards.push(activeBoard.map((arr) => [...arr]));
-	preservedBoardOfCurrSizeExists();
+	preservedBoardOfCurrSizeExistsAndUpdateBoardPadding();
 });
 restartGameButton.addEventListener("click", () => {
 	popUpToggle();
 });
 undoButton.addEventListener("click", () => {
 	activeBoard = prevBoardConfiguration.map((arr) => [...arr]);
-	populateBoard("Continue Game ?");
 	//* both scores updates in populateBoard() based on start/new/continue so update here after func() call for correct values
 	score.innerHTML = `SCORE<br>${prevScore}`;
 	best.innerHTML = `BEST<br>${prevBestScore}`;
+	populateBoard("Continue Game ?");
 });
-document.addEventListener("keydown", (e) => {
-	if (!gameStarted || isPopUpOpen() || moveInProcess) return;
-	handleMove(e.key);
-});
+function cannotPerformMove() {
+	return !gameStarted || isPopUpOpen() || moveInProcess;
+}
+let startX, startY, endX, endY;
+board.addEventListener("touchstart", handleInput);
+board.addEventListener("touchmove", handleInput);
+board.addEventListener("touchend", handleInput);
+document.addEventListener("keydown", handleInput);
+function handleInput(e) {
+	e.preventDefault();
+	if (cannotPerformMove()) return;
+	switch (e.type) {
+		case "touchstart":
+			startX = e.touches[0].clientX;
+			startY = e.touches[0].clientY;
+			break;
+		case "touchmove":
+			endX = e.touches[0].clientX;
+			endY = e.touches[0].clientY;
+			break;
+		case "touchend":
+			const deltaX = endX - startX;
+			const deltaY = endY - startY;
+			const threshold = 50;
+			if (Math.abs(deltaX) > Math.abs(deltaY)) {
+				if (deltaX > threshold) {
+					handleMove("ArrowRight");
+				} else if (deltaX < -threshold) {
+					handleMove("ArrowLeft");
+				}
+			} else {
+				if (deltaY > threshold) {
+					handleMove("ArrowDown");
+				} else if (deltaY < -threshold) {
+					handleMove("ArrowUp");
+				}
+			}
+			break;
+		case "keydown":
+			handleMove(e.key);
+	}
+}
 
 //! Functions
 function renewActiveBoardArr() {
@@ -100,7 +138,7 @@ function renewActiveBoardArr() {
 function removeFromPreservedBoards() {
 	preservedBoards = preservedBoards.filter((arr) => arr.length !== size);
 }
-function preservedBoardOfCurrSizeExists() {
+function preservedBoardOfCurrSizeExistsAndUpdateBoardPadding() {
 	if (preservedBoards.find((matrix) => matrix.length === size)) {
 		startOrContinueButton.innerText = "Continue Game ?";
 		startOrContinueButton.style.fontSize = "1rem";
@@ -114,9 +152,6 @@ function preservedBoardOfCurrSizeExists() {
 function homeAndPlayPageSwap() {
 	homePage.classList.toggle("hidden");
 	playPage.classList.toggle("hidden");
-}
-function boardDimension() {
-	return board.clientHeight;
 }
 function start(start$newGameOrContinueGame) {
 	homeAndPlayPageSwap();
@@ -137,13 +172,57 @@ function start(start$newGameOrContinueGame) {
 	gameStarted = true;
 	populateBoard(start$newGameOrContinueGame);
 }
+function boardDimension() {
+	return board.clientHeight;
+}
+function cellMargin() {
+	return size < 7 ? 4 : 3;
+}
 function cellDimension() {
-	return `${(boardDimension() - 8 * (size + 1) - 1) / size}px`;
+	return `${(boardDimension() - cellMargin() * 2 * size - 13) / size}px`;
+}
+function fillCellContainers() {
+	for (let i = 0; i < size; ++i) {
+		for (let j = 0; j < size; ++j) {
+			const cellContainer = document.createElement("div");
+			cellContainer.id = `${i}${j}`;
+			cellContainer.classList.add("cellContainer");
+			cellContainer.style.height = `${(boardDimension() * 0.9) / size}px`;
+			// cellContainer.style.margin = `${cellMargin()}px`;
+			cellContainer.style.margin = `${
+				(boardDimension() - boardDimension() * 0.9) / (size + 2) / 2
+			}px`;
+			board.appendChild(cellContainer);
+		}
+	}
+}
+function fillCells() {
+	for (let i = 0; i < size; ++i) {
+		for (let j = 0; j < size; ++j) {
+			if (activeBoard[i][j] !== 0) {
+				board.appendChild(createCell(i, j));
+			}
+		}
+	}
 }
 function cellMotionDistance() {
 	return `${parseFloat(cellDimension()) + 8}px`;
 }
 function cellMotionTime() {}
+function randomCellAppear(i, j) {
+	const cell = createCell(i, j);
+	//* appearing cell animation
+	board.appendChild(cell);
+}
+function randomCell() {
+	do {
+		i = Math.floor(Math.random() * size);
+		j = Math.floor(Math.random() * size);
+	} while (activeBoard[i][j] != 0);
+	const val = Math.floor(Math.random() * 10);
+	activeBoard[i][j] = val == 9 ? 4 : 2;
+	randomCellAppear(i, j);
+}
 function populateBoard(start$newGameOrContinueGame) {
 	while (board.firstChild) {
 		board.removeChild(board.firstChild);
@@ -159,33 +238,15 @@ function populateBoard(start$newGameOrContinueGame) {
 	}
 	prevBoardConfiguration = activeBoard.map((arr) => [...arr]);
 }
-function fillCellContainers() {
-	for (let i = 0; i < size; ++i) {
-		for (let j = 0; j < size; ++j) {
-			const cellContainer = document.createElement("div");
-			cellContainer.style.height = cellDimension();
-			cellContainer.classList.add("cellContainer");
-			cellContainer.id = `${i}${j}`;
-			board.appendChild(cellContainer);
-		}
-	}
-}
-function fillCells() {
-	for (let i = 0; i < size; ++i) {
-		for (let j = 0; j < size; ++j) {
-			if (activeBoard[i][j] !== 0) {
-				board.appendChild(createCell(i, j));
-			}
-		}
-	}
-}
 function createCell(i, j) {
 	const cell = document.createElement("div");
+	const val = activeBoard[i][j];
 	cell.classList.add("cell");
 	cell.style.height = cellDimension();
-	cell.innerText = activeBoard[i][j];
+	cell.style.margin = `${cellMargin()}px`;
+	cell.innerText = val;
 	setCellPositionAndId(cell, i, j);
-	setCellFontSize(cell, i, j);
+	setCellColorAndFontSize(cell, val);
 	return cell;
 }
 function setCellPositionAndId(cell, i, j) {
@@ -197,27 +258,24 @@ function setCellPositionAndId(cell, i, j) {
 	cell.style.width = `${container.width}px`;
 	cell.id = `c${i}${j}`;
 }
-function setCellFontSize(cell, i, j) {
-	const val = Math.floor(Math.log10(activeBoard[i][j]));
+function setCellColorAndFontSize(cell, val) {
+	cell.classList.add(`tile${val}`);
+	const log10 = Math.floor(Math.log10(val));
 	const factor =
-		val === 0 || val === 1 ? 1 : val === 2 ? 0.7 : val === 4 ? 0.4 : 0.35;
+		log10 === 0
+			? 0.8
+			: log10 === 1
+			? 0.72
+			: log10 === 2
+			? 0.48
+			: log10 === 3
+			? 0.36
+			: log10 === 4
+			? 0.32
+			: 0.28;
 	cell.style.fontSize = `${
-		parseInt(cellDimension().match(/^\d+/)[0]) * 0.8 * factor
+		parseInt(cellDimension().match(/^\d+/)[0]) * factor
 	}px`;
-}
-function randomCell() {
-	do {
-		i = Math.floor(Math.random() * size);
-		j = Math.floor(Math.random() * size);
-	} while (activeBoard[i][j] != 0);
-	const val = Math.floor(Math.random() * 10);
-	activeBoard[i][j] = val == 9 ? 4 : 2;
-	randomCellAppear(i, j);
-}
-function randomCellAppear(i, j) {
-	const cell = createCell(i, j);
-	//* appearing cell animation
-	board.appendChild(cell);
 }
 function updateScores(val) {
 	const currScore = parseInt(score.innerHTML.substring(9));
@@ -225,10 +283,6 @@ function updateScores(val) {
 	//*animation + updation
 	score.innerHTML = `SCORE<br>${currScore + val}`;
 	best.innerHTML = `BEST<br>${Math.max(currScore + val, currBestScore)}`;
-}
-function getCurrScores() {
-	prevScore = parseInt(score.innerHTML.substring(9));
-	prevBestScore = parseInt(best.innerHTML.substring(8));
 }
 //*move in process !== curr move -> return
 function arrowUpMove() {
@@ -494,7 +548,7 @@ function handleCellMove(currI, currJ, nextI, nextJ, moveType) {
 		activeBoard[currI][currJ] = 0;
 		nextCell.innerText = activeBoard[nextI][nextJ] *= 2;
 		updateScores(activeBoard[nextI][nextJ]);
-		setCellFontSize(nextCell, nextI, nextJ);
+		setCellColorAndFontSize(nextCell, activeBoard[nextI][nextJ]);
 		board.removeChild(currCell);
 		return (anyCellMotionOnBoardPreviously = true);
 	}
