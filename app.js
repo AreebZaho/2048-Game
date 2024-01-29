@@ -19,7 +19,7 @@ let activeBoard;
 const preservedScores = new Array(6);
 const preservedBestScores = new Array(6);
 const board = document.querySelector("#board");
-let moveInProcess = false;
+let processing = false;
 let anyCellMotionOnBoardPreviously = false;
 let prevScore = 0;
 let prevBestScore = 0;
@@ -89,7 +89,7 @@ undoButton.addEventListener("click", () => {
 	populateBoard("Continue Game ?");
 });
 function cannotPerformMove() {
-	return !gameStarted || isPopUpOpen() || moveInProcess;
+	return !gameStarted || isPopUpOpen() || processing;
 }
 let startX, startY, endX, endY;
 board.addEventListener("touchstart", handleInput);
@@ -97,8 +97,8 @@ board.addEventListener("touchmove", handleInput);
 board.addEventListener("touchend", handleInput);
 document.addEventListener("keydown", handleInput);
 function handleInput(e) {
-	e.preventDefault();
 	if (cannotPerformMove()) return;
+	if (e.type !== "keydown") e.preventDefault();
 	switch (e.type) {
 		case "touchstart":
 			startX = e.touches[0].clientX;
@@ -175,11 +175,8 @@ function start(start$newGameOrContinueGame) {
 function boardDimension() {
 	return board.clientHeight;
 }
-function cellMargin() {
-	return size < 7 ? 4 : 3;
-}
 function cellDimension() {
-	return `${(boardDimension() - cellMargin() * 2 * size - 13) / size}px`;
+	return `${(boardDimension() - 4 * 2 * size - 13) / size}px`;
 }
 function fillCellContainers() {
 	for (let i = 0; i < size; ++i) {
@@ -187,11 +184,7 @@ function fillCellContainers() {
 			const cellContainer = document.createElement("div");
 			cellContainer.id = `${i}${j}`;
 			cellContainer.classList.add("cellContainer");
-			cellContainer.style.height = `${(boardDimension() * 0.9) / size}px`;
-			// cellContainer.style.margin = `${cellMargin()}px`;
-			cellContainer.style.margin = `${
-				(boardDimension() - boardDimension() * 0.9) / (size + 2) / 2
-			}px`;
+			cellContainer.style.height = `${cellDimension()}`;
 			board.appendChild(cellContainer);
 		}
 	}
@@ -209,19 +202,20 @@ function cellMotionDistance() {
 	return `${parseFloat(cellDimension()) + 8}px`;
 }
 function cellMotionTime() {}
-function randomCellAppear(i, j) {
-	const cell = createCell(i, j);
-	//* appearing cell animation
-	board.appendChild(cell);
-}
-function randomCell() {
+function cellAppear() {
 	do {
 		i = Math.floor(Math.random() * size);
 		j = Math.floor(Math.random() * size);
 	} while (activeBoard[i][j] != 0);
-	const val = Math.floor(Math.random() * 10);
-	activeBoard[i][j] = val == 9 ? 4 : 2;
-	randomCellAppear(i, j);
+	activeBoard[i][j] = Math.floor(Math.random() * 10) == 9 ? 4 : 2;
+	const cell = createCell(i, j);
+	board.appendChild(cell);
+	cell.style.transform = "scale(0)";
+	processing = true;
+	setTimeout(() => {
+		cell.style.transform = "scale(1)";
+		processing = false;
+	}, 150);
 }
 function populateBoard(start$newGameOrContinueGame) {
 	while (board.firstChild) {
@@ -233,8 +227,8 @@ function populateBoard(start$newGameOrContinueGame) {
 		start$newGameOrContinueGame === "Start Game" ||
 		start$newGameOrContinueGame === "New Game"
 	) {
-		randomCell();
-		randomCell();
+		cellAppear();
+		cellAppear();
 	}
 	prevBoardConfiguration = activeBoard.map((arr) => [...arr]);
 }
@@ -243,7 +237,6 @@ function createCell(i, j) {
 	const val = activeBoard[i][j];
 	cell.classList.add("cell");
 	cell.style.height = cellDimension();
-	cell.style.margin = `${cellMargin()}px`;
 	cell.innerText = val;
 	setCellPositionAndId(cell, i, j);
 	setCellColorAndFontSize(cell, val);
@@ -253,13 +246,12 @@ function setCellPositionAndId(cell, i, j) {
 	const container = document
 		.getElementById(`${i}${j}`)
 		.getBoundingClientRect();
-	cell.style.top = `${container.top}px`;
-	cell.style.left = `${container.left}px`;
-	cell.style.width = `${container.width}px`;
+	cell.style.top = `${container.top - 4}px`;
+	cell.style.left = `${container.left - 4}px`;
 	cell.id = `c${i}${j}`;
 }
 function setCellColorAndFontSize(cell, val) {
-	cell.classList.add(`tile${val}`);
+	cell.classList.add(`tile${val}`); //*only for background color as font size dependent on cell dimension
 	const log10 = Math.floor(Math.log10(val));
 	const factor =
 		log10 === 0
@@ -284,7 +276,26 @@ function updateScores(val) {
 	score.innerHTML = `SCORE<br>${currScore + val}`;
 	best.innerHTML = `BEST<br>${Math.max(currScore + val, currBestScore)}`;
 }
-//*move in process !== curr move -> return
+function handleMove(motionType) {
+	auxiPrevBoardConfiguration = activeBoard.map((row) => [...row]);
+	const currScore = parseInt(score.innerHTML.substring(9));
+	const currBestScore = parseInt(best.innerHTML.substring(8));
+	if (motionType === "ArrowUp") arrowUpMove();
+	if (motionType === "ArrowLeft") arrowLeftMove();
+	if (motionType === "ArrowRight") arrowRightMove();
+	if (motionType === "ArrowDown") arrowDownMove();
+	if (
+		!auxiPrevBoardConfiguration.every((row, i) =>
+			row.every((el, j) => el === activeBoard[i][j])
+		)
+	) {
+		prevBoardConfiguration = auxiPrevBoardConfiguration;
+	}
+	const newScore = parseInt(score.innerHTML.substring(9));
+	const newBestScore = parseInt(best.innerHTML.substring(8));
+	if (currScore !== newScore) prevScore = currScore;
+	if (currBestScore !== newBestScore) prevBestScore = currBestScore;
+}
 function arrowUpMove() {
 	anyCellMotionOnBoardPreviously = false;
 	//*motion
@@ -338,7 +349,7 @@ function arrowUpMove() {
 			}
 		}
 	} while (anyCellMotionOnBoard);
-	if (anyCellMotionOnBoardPreviously) randomCell();
+	if (anyCellMotionOnBoardPreviously) cellAppear();
 }
 function arrowLeftMove() {
 	anyCellMotionOnBoardPreviously = false;
@@ -393,7 +404,7 @@ function arrowLeftMove() {
 			}
 		}
 	} while (anyCellMotionOnBoard);
-	if (anyCellMotionOnBoardPreviously) randomCell();
+	if (anyCellMotionOnBoardPreviously) cellAppear();
 }
 function arrowRightMove() {
 	anyCellMotionOnBoardPreviously = false;
@@ -448,7 +459,7 @@ function arrowRightMove() {
 			}
 		}
 	} while (anyCellMotionOnBoard);
-	if (anyCellMotionOnBoardPreviously) randomCell();
+	if (anyCellMotionOnBoardPreviously) cellAppear();
 }
 function arrowDownMove() {
 	anyCellMotionOnBoardPreviously = false;
@@ -503,27 +514,7 @@ function arrowDownMove() {
 			}
 		}
 	} while (anyCellMotionOnBoard);
-	if (anyCellMotionOnBoardPreviously) randomCell();
-}
-function handleMove(motionType) {
-	auxiPrevBoardConfiguration = activeBoard.map((row) => [...row]);
-	const currScore = parseInt(score.innerHTML.substring(9));
-	const currBestScore = parseInt(best.innerHTML.substring(8));
-	if (motionType === "ArrowUp") arrowUpMove();
-	if (motionType === "ArrowLeft") arrowLeftMove();
-	if (motionType === "ArrowRight") arrowRightMove();
-	if (motionType === "ArrowDown") arrowDownMove();
-	if (
-		!auxiPrevBoardConfiguration.every((row, i) =>
-			row.every((el, j) => el === activeBoard[i][j])
-		)
-	) {
-		prevBoardConfiguration = auxiPrevBoardConfiguration;
-	}
-	const newScore = parseInt(score.innerHTML.substring(9));
-	const newBestScore = parseInt(best.innerHTML.substring(8));
-	if (currScore !== newScore) prevScore = currScore;
-	if (currBestScore !== newBestScore) prevBestScore = currBestScore;
+	if (anyCellMotionOnBoardPreviously) cellAppear();
 }
 function handleCellMove(currI, currJ, nextI, nextJ, moveType) {
 	const currCell = document.getElementById(`c${currI}${currJ}`);
@@ -537,8 +528,11 @@ function handleCellMove(currI, currJ, nextI, nextJ, moveType) {
 			nextI,
 			nextJ
 		);
-		setCellPositionAndId(currCell, nextI, nextJ);
+		//*store order: eg: if up move, store up cells initial and final positions first then lower rows
+		//*initial & final position, collision(true/false)
+		//*translate from initial to final position, if (collision = true) then remove el, double val at that pos
 		currCell.style.removeProperty("transform");
+		setCellPositionAndId(currCell, nextI, nextJ);
 		return (anyCellMotionOnBoardPreviously = true);
 	}
 	if (
@@ -556,7 +550,7 @@ function handleCellMove(currI, currJ, nextI, nextJ, moveType) {
 }
 function cellTranslateMotion(currI, currJ, nextI, nextJ) {
 	if (currI > nextI) return `translateY(-${cellMotionDistance()})`;
-	else if (currI < nextI) return `translateY(${cellMotionDistance()})`;
-	else if (currJ < nextJ) return `translateX(${cellMotionDistance()})`;
-	else return `translateX(-${cellMotionDistance()})`;
+	if (currI < nextI) return `translateY(${cellMotionDistance()})`;
+	if (currJ < nextJ) return `translateX(${cellMotionDistance()})`;
+	return `translateX(-${cellMotionDistance()})`;
 }

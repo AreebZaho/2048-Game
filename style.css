@@ -42,7 +42,8 @@ div {
 /*****************************************************/
 .homePage,
 .playPage {
-	background: linear-gradient(to bottom, #ecf0f1, #bdc3c7);
+	/* background: linear-gradient(to bottom, #ecf0f1, #bdc3c7); */
+	background-color: black;
 	height: calc(100vh - 50px);
 	display: flex;
 	flex-direction: column;
@@ -146,25 +147,25 @@ div {
 	aspect-ratio: 1/1;
 	height: calc((100vh - 50px) * 0.65);
 	background-color: gray;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 	flex-wrap: wrap;
-	/* padding: 6px; */
-	border-radius: 6px;
+	padding: 6px;
+	border-radius: 10px;
 }
 .cellContainer {
 	aspect-ratio: 1/1;
 	background-color: rgb(198, 194, 194);
-	border-radius: 3px;
+	border-radius: 4px;
+	margin: 4px;
 }
 .cell {
 	aspect-ratio: 1/1;
 	font-family: "Lato", sans-serif;
 	font-weight: 900;
+	border-radius: 4px;
 	padding: 5px;
+	margin: 4px;
 	position: absolute;
-	border-radius: 3px;
+	transition: transform 0.2s ease-in-out, translateX 0.2s ease-in-out, translateY 0.2s ease-in-out;
 }
 .tile2 {
 	background: radial-gradient(ellipse at center, #e8f4f4, #a2e4e4);
@@ -194,28 +195,28 @@ div {
 	background: radial-gradient(ellipse at center, #f3be85, #ff7d36);
 }
 .tile1024 {
-  background: radial-gradient(ellipse at center, #fa8b8b, #d96666);
+	background: radial-gradient(ellipse at center, #fa8b8b, #d96666);
 }
 .tile2048 {
-  background: radial-gradient(ellipse at center, #b2f5c6, #b0e6c7);
+	background: radial-gradient(ellipse at center, #b2f5c6, #b0e6c7);
 }
 .tile4096 {
-  background: radial-gradient(ellipse at center, #fae589, #ffda70);
+	background: radial-gradient(ellipse at center, #fae589, #ffda70);
 }
 .tile8192 {
-  background: radial-gradient(ellipse at center, #6497f0, #3c78e6);
+	background: radial-gradient(ellipse at center, #6497f0, #3c78e6);
 }
 .tile16384 {
-  background: radial-gradient(ellipse at center, #7bce65, #4da74f);
+	background: radial-gradient(ellipse at center, #7bce65, #4da74f);
 }
 .tile32768 {
-  background: radial-gradient(ellipse at center, #f9ab8e, #ffab91);
-} 
+	background: radial-gradient(ellipse at center, #f9ab8e, #ffab91);
+}
 .tile65536 {
-  background: radial-gradient(ellipse at center, #97555c, #80444c);
-} 
+	background: radial-gradient(ellipse at center, #97555c, #80444c);
+}
 .tile131072 {
-  background: radial-gradient(ellipse at center, #bea2be, #af7cb5);
+	background: radial-gradient(ellipse at center, #bea2be, #af7cb5);
 }
 
 #scoreCards {
@@ -406,7 +407,8 @@ div {
 	#playPage {
 		flex-direction: row;
 	}
-	#buttonsDiv, #scoreCards {
+	#buttonsDiv,
+	#scoreCards {
 		flex-direction: column;
 	}
 }
@@ -414,7 +416,8 @@ div {
 	#playPage {
 		flex-direction: row;
 	}
-	#buttonsDiv, #scoreCards {
+	#buttonsDiv,
+	#scoreCards {
 		flex-direction: column;
 	}
 }
@@ -435,7 +438,8 @@ div {
 	#playPage {
 		flex-direction: row;
 	}
-	#buttonsDiv, #scoreCards {
+	#buttonsDiv,
+	#scoreCards {
 		flex-direction: column;
 	}
 }
@@ -448,7 +452,8 @@ div {
 	#playPage {
 		flex-direction: column;
 	}
-	#buttonsDiv, #scoreCards {
+	#buttonsDiv,
+	#scoreCards {
 		flex-direction: row;
 	}
 }
@@ -459,7 +464,8 @@ div {
 	#playPage {
 		flex-direction: row;
 	}
-	#buttonsDiv, #scoreCards {
+	#buttonsDiv,
+	#scoreCards {
 		flex-direction: column;
 	}
 }
@@ -470,7 +476,7 @@ div {
 }
 @media (max-width: 680px) and (max-height: 800px) {
 	#playPage {
-		gap : 2vw;
+		gap: 2vw;
 	}
 }
 @media (max-width: 680px) and (max-height: 700px) {
@@ -487,7 +493,7 @@ div {
 	#scoreCards {
 		flex-direction: column;
 		gap: 5vh;
-	} 
+	}
 }
 @media (max-width: 580px) and (max-height: 800px) {
 	#playPage {
@@ -495,7 +501,7 @@ div {
 	}
 	#scoreCards {
 		flex-direction: row;
-	} 
+	}
 }
 @media (max-width: 580px) and (max-height: 600px) {
 	#board {
@@ -505,7 +511,8 @@ div {
 		flex-direction: column;
 		gap: 2vh;
 	}
-	#buttonsDiv, #scoreCards {
+	#buttonsDiv,
+	#scoreCards {
 		flex-direction: row;
 	}
 }
@@ -514,7 +521,8 @@ div {
 		flex-direction: row;
 		gap: 3.5vh;
 	}
-	#buttonsDiv, #scoreCards {
+	#buttonsDiv,
+	#scoreCards {
 		flex-direction: column;
 	}
 }
@@ -626,7 +634,8 @@ div {
 	#playPage {
 		flex-direction: column;
 	}
-	#buttonsDiv, #scoreCards {
+	#buttonsDiv,
+	#scoreCards {
 		flex-direction: row;
 	}
 }
@@ -634,7 +643,8 @@ div {
 	#playPage {
 		flex-direction: row;
 	}
-	#buttonsDiv, #scoreCards {
+	#buttonsDiv,
+	#scoreCards {
 		flex-direction: column;
 	}
 }
