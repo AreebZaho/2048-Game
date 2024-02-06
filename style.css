@@ -165,7 +165,8 @@ div {
 	padding: 5px;
 	margin: 4px;
 	position: absolute;
-	transition: transform 0.2s ease-in-out, translateX 0.2s ease-in-out, translateY 0.2s ease-in-out;
+	transition: transform 0.125s linear, translateX 0.2s linear,
+		translateY 0.2s linear;
 }
 .tile2 {
 	background: radial-gradient(ellipse at center, #e8f4f4, #a2e4e4);

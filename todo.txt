@@ -8,11 +8,12 @@ Scoreboards [DONE]
 Different tile colors for different numbers [DONE]
 Motion with touch [DONE]
 Tile appearing animation [DONE]
-Site Icon 
 Tile motion animation
 Tile collision + enlarge animation
+Scoreboard animation 
 Win visuals
 Game over visuals
 Home page css
 Play page css
 Dark mode toggler
+Site Icon 

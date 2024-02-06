@@ -19,12 +19,12 @@ let activeBoard;
 const preservedScores = new Array(6);
 const preservedBestScores = new Array(6);
 const board = document.querySelector("#board");
-let processing = false;
 let anyCellMotionOnBoardPreviously = false;
 let prevScore = 0;
 let prevBestScore = 0;
 const score = document.querySelector("#score");
 const best = document.querySelector("#best");
+let processing = false;
 
 //! Home Page
 leftCaret.addEventListener("click", () => {
@@ -53,13 +53,13 @@ newGameButton.addEventListener("click", (e) => {
 });
 
 //! Pop Up
-const isPopUpOpen = () => {
+function isPopUpOpen() {
 	return !popUpBg.classList.contains("hidden");
-};
-const popUpToggle = () => {
+}
+function popUpToggle() {
 	popUpBg.classList.toggle("hidden");
 	popUp.classList.toggle("hidden");
-};
+}
 popUpYes.addEventListener("click", () => {
 	renewActiveBoardArr();
 	populateBoard("New Game");
@@ -71,6 +71,7 @@ popUpNo.addEventListener("click", () => {
 
 //! Play Page
 homeButton.addEventListener("click", (e) => {
+	if (cannotPerformMove()) return;
 	preservedScores[size - 3] = prevScore;
 	preservedBestScores[size - 3] = prevBestScore;
 	gameStarted = false;
@@ -79,18 +80,17 @@ homeButton.addEventListener("click", (e) => {
 	preservedBoardOfCurrSizeExistsAndUpdateBoardPadding();
 });
 restartGameButton.addEventListener("click", () => {
+	if (cannotPerformMove()) return;
 	popUpToggle();
 });
 undoButton.addEventListener("click", () => {
+	if (cannotPerformMove()) return;
 	activeBoard = prevBoardConfiguration.map((arr) => [...arr]);
 	//* both scores updates in populateBoard() based on start/new/continue so update here after func() call for correct values
 	score.innerHTML = `SCORE<br>${prevScore}`;
 	best.innerHTML = `BEST<br>${prevBestScore}`;
 	populateBoard("Continue Game ?");
 });
-function cannotPerformMove() {
-	return !gameStarted || isPopUpOpen() || processing;
-}
 let startX, startY, endX, endY;
 board.addEventListener("touchstart", handleInput);
 board.addEventListener("touchmove", handleInput);
@@ -132,6 +132,9 @@ function handleInput(e) {
 }
 
 //! Functions
+function cannotPerformMove() {
+	return !gameStarted || isPopUpOpen() || processing;
+}
 function renewActiveBoardArr() {
 	activeBoard = new Array(size).fill().map(() => new Array(size).fill(0));
 }
@@ -198,10 +201,6 @@ function fillCells() {
 		}
 	}
 }
-function cellMotionDistance() {
-	return `${parseFloat(cellDimension()) + 8}px`;
-}
-function cellMotionTime() {}
 function cellAppear() {
 	do {
 		i = Math.floor(Math.random() * size);
@@ -215,7 +214,7 @@ function cellAppear() {
 	setTimeout(() => {
 		cell.style.transform = "scale(1)";
 		processing = false;
-	}, 150);
+	}, 125);
 }
 function populateBoard(start$newGameOrContinueGame) {
 	while (board.firstChild) {
@@ -280,78 +279,68 @@ function handleMove(motionType) {
 	auxiPrevBoardConfiguration = activeBoard.map((row) => [...row]);
 	const currScore = parseInt(score.innerHTML.substring(9));
 	const currBestScore = parseInt(best.innerHTML.substring(8));
-	if (motionType === "ArrowUp") arrowUpMove();
-	if (motionType === "ArrowLeft") arrowLeftMove();
-	if (motionType === "ArrowRight") arrowRightMove();
-	if (motionType === "ArrowDown") arrowDownMove();
+	if (motionType === "ArrowUp") arrowUp();
+	if (motionType === "ArrowLeft") arrowLeft();
+	if (motionType === "ArrowRight") arrowRight();
+	if (motionType === "ArrowDown") arrowDown();
+	const newScore = parseInt(score.innerHTML.substring(9));
+	const newBestScore = parseInt(best.innerHTML.substring(8));
+	if (currScore !== newScore) prevScore = currScore;
+	if (currBestScore !== newBestScore) prevBestScore = currBestScore;
 	if (
 		!auxiPrevBoardConfiguration.every((row, i) =>
 			row.every((el, j) => el === activeBoard[i][j])
 		)
 	) {
 		prevBoardConfiguration = auxiPrevBoardConfiguration;
+		cellAppear();
 	}
-	const newScore = parseInt(score.innerHTML.substring(9));
-	const newBestScore = parseInt(best.innerHTML.substring(8));
-	if (currScore !== newScore) prevScore = currScore;
-	if (currBestScore !== newBestScore) prevBestScore = currBestScore;
 }
-function arrowUpMove() {
-	anyCellMotionOnBoardPreviously = false;
-	//*motion
-	let anyCellMotionOnBoard = false;
-	do {
-		anyCellMotionOnBoard = false;
-		for (let i = 1; i < size; ++i) {
-			for (let j = 0; j < size; ++j) {
-				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(
-						i,
-						j,
-						i - 1,
-						j,
-						"Motion"
-					);
-				}
-			}
-		}
-	} while (anyCellMotionOnBoard);
-	//*collision
-	anyCellMotionOnBoard = false;
+function arrowUp() {
+	processing = true;
+	const cellTranslations = [];
 	for (let i = 1; i < size; ++i) {
 		for (let j = 0; j < size; ++j) {
 			if (activeBoard[i][j] !== 0) {
-				anyCellMotionOnBoard = handleCellMove(
-					i,
-					j,
-					i - 1,
-					j,
-					"Collision"
-				);
+				const arr = [i, i, j, 0];
+				cellTranslations.push(arr);
 			}
 		}
 	}
-	//*motion
-	anyCellMotionOnBoard = false;
-	do {
-		anyCellMotionOnBoard = false;
-		for (let i = 1; i < size; ++i) {
-			for (let j = 0; j < size; ++j) {
-				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(
-						i,
-						j,
-						i - 1,
-						j,
-						"Motion"
-					);
-				}
-			}
+	cellTranslations.forEach((arr) => {
+		const i = arr[1];
+		const j = arr[2];
+		let nextI = i;
+		while (nextI > 0 && activeBoard[nextI - 1][j] === 0) --nextI;
+		arr[1] = nextI;
+		activeBoard[nextI][j] = activeBoard[i][j];
+		if (nextI !== i) activeBoard[i][j] = 0;
+	});
+	cellTranslations.forEach((arr) => {
+		const i = arr[1];
+		const j = arr[2];
+		if (i > 0 && activeBoard[i][j] === activeBoard[i - 1][j]) {
+			arr[1] = i - 1;
+			arr[3] = 1;
+			activeBoard[i][j] = 0;
+			activeBoard[i - 1][j] *= 2;
 		}
-	} while (anyCellMotionOnBoard);
-	if (anyCellMotionOnBoardPreviously) cellAppear();
+	});
+	cellTranslations.forEach((arr) => {
+		if (arr[3] !== 1) {
+			const i = arr[1];
+			const j = arr[2];
+			let nextI = i;
+			while (nextI > 0 && activeBoard[nextI - 1][j] === 0) --nextI;
+			arr[1] = nextI;
+			activeBoard[nextI][j] = activeBoard[i][j];
+			if (nextI !== i) activeBoard[i][j] = 0;
+		}
+	});
+
+	processing = false;
 }
-function arrowLeftMove() {
+function arrowLeft() {
 	anyCellMotionOnBoardPreviously = false;
 	//*motion
 	let anyCellMotionOnBoard = false;
@@ -360,7 +349,7 @@ function arrowLeftMove() {
 		for (let j = 1; j < size; ++j) {
 			for (let i = 0; i < size; ++i) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(
+					anyCellMotionOnBoard = handleMotion(
 						i,
 						j,
 						i,
@@ -376,7 +365,7 @@ function arrowLeftMove() {
 	for (let j = 1; j < size; ++j) {
 		for (let i = 0; i < size; ++i) {
 			if (activeBoard[i][j] !== 0) {
-				anyCellMotionOnBoard = handleCellMove(
+				anyCellMotionOnBoard = handleMotion(
 					i,
 					j,
 					i,
@@ -393,7 +382,7 @@ function arrowLeftMove() {
 		for (let j = 1; j < size; ++j) {
 			for (let i = 0; i < size; ++i) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(
+					anyCellMotionOnBoard = handleMotion(
 						i,
 						j,
 						i,
@@ -406,7 +395,7 @@ function arrowLeftMove() {
 	} while (anyCellMotionOnBoard);
 	if (anyCellMotionOnBoardPreviously) cellAppear();
 }
-function arrowRightMove() {
+function arrowRight() {
 	anyCellMotionOnBoardPreviously = false;
 	//*motion
 	let anyCellMotionOnBoard = false;
@@ -415,7 +404,7 @@ function arrowRightMove() {
 		for (let j = size - 2; j >= 0; --j) {
 			for (let i = 0; i < size; ++i) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(
+					anyCellMotionOnBoard = handleMotion(
 						i,
 						j,
 						i,
@@ -431,7 +420,7 @@ function arrowRightMove() {
 	for (let j = size - 2; j >= 0; --j) {
 		for (let i = 0; i < size; ++i) {
 			if (activeBoard[i][j] !== 0) {
-				anyCellMotionOnBoard = handleCellMove(
+				anyCellMotionOnBoard = handleMotion(
 					i,
 					j,
 					i,
@@ -448,7 +437,7 @@ function arrowRightMove() {
 		for (let j = size - 2; j >= 0; --j) {
 			for (let i = 0; i < size; ++i) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(
+					anyCellMotionOnBoard = handleMotion(
 						i,
 						j,
 						i,
@@ -461,7 +450,7 @@ function arrowRightMove() {
 	} while (anyCellMotionOnBoard);
 	if (anyCellMotionOnBoardPreviously) cellAppear();
 }
-function arrowDownMove() {
+function arrowDown() {
 	anyCellMotionOnBoardPreviously = false;
 	//*motion
 	let anyCellMotionOnBoard = false;
@@ -470,7 +459,7 @@ function arrowDownMove() {
 		for (let i = size - 2; i >= 0; --i) {
 			for (let j = 0; j < size; ++j) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(
+					anyCellMotionOnBoard = handleMotion(
 						i,
 						j,
 						i + 1,
@@ -486,7 +475,7 @@ function arrowDownMove() {
 	for (let i = size - 2; i >= 0; --i) {
 		for (let j = 0; j < size; ++j) {
 			if (activeBoard[i][j] !== 0) {
-				anyCellMotionOnBoard = handleCellMove(
+				anyCellMotionOnBoard = handleMotion(
 					i,
 					j,
 					i + 1,
@@ -503,7 +492,7 @@ function arrowDownMove() {
 		for (let i = size - 2; i >= 0; --i) {
 			for (let j = 0; j < size; ++j) {
 				if (activeBoard[i][j] !== 0) {
-					anyCellMotionOnBoard = handleCellMove(
+					anyCellMotionOnBoard = handleMotion(
 						i,
 						j,
 						i + 1,
@@ -516,21 +505,18 @@ function arrowDownMove() {
 	} while (anyCellMotionOnBoard);
 	if (anyCellMotionOnBoardPreviously) cellAppear();
 }
-function handleCellMove(currI, currJ, nextI, nextJ, moveType) {
+function handleMotion(currI, currJ, nextI, nextJ, moveType) {
 	const currCell = document.getElementById(`c${currI}${currJ}`);
 	const nextCell = document.getElementById(`c${nextI}${nextJ}`);
 	if (activeBoard[nextI][nextJ] === 0 && moveType === "Motion") {
 		activeBoard[nextI][nextJ] = activeBoard[currI][currJ];
 		activeBoard[currI][currJ] = 0;
-		currCell.style.transform = cellTranslateMotion(
+		currCell.style.transform = translationDistance(
 			currI,
 			currJ,
 			nextI,
 			nextJ
 		);
-		//*store order: eg: if up move, store up cells initial and final positions first then lower rows
-		//*initial & final position, collision(true/false)
-		//*translate from initial to final position, if (collision = true) then remove el, double val at that pos
 		currCell.style.removeProperty("transform");
 		setCellPositionAndId(currCell, nextI, nextJ);
 		return (anyCellMotionOnBoardPreviously = true);
@@ -548,9 +534,11 @@ function handleCellMove(currI, currJ, nextI, nextJ, moveType) {
 	}
 	return false;
 }
-function cellTranslateMotion(currI, currJ, nextI, nextJ) {
-	if (currI > nextI) return `translateY(-${cellMotionDistance()})`;
-	if (currI < nextI) return `translateY(${cellMotionDistance()})`;
-	if (currJ < nextJ) return `translateX(${cellMotionDistance()})`;
-	return `translateX(-${cellMotionDistance()})`;
+function cellMotionTime() {}
+function translationDistance(currI, currJ, nextI, nextJ) {
+	const distance = `${parseFloat(cellDimension()) + 8}px`;
+	if (currI > nextI) return `translateY(-${distance})`;
+	if (currI < nextI) return `translateY(${distance})`;
+	if (currJ < nextJ) return `translateX(${distance})`;
+	return `translateX(-${distance})`;
 }
