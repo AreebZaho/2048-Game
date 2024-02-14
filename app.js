@@ -7,23 +7,22 @@ const newGameButton = document.querySelector("#newGameButton");
 let gameStarted = false;
 const homeButton = document.querySelector("#homeButton");
 const restartGameButton = document.querySelector("#restartGameButton");
-const undoButton = document.querySelector("#undoButton");
 const popUpBg = document.querySelector("#popUpBg");
 const popUp = document.querySelector("#popUp");
 const popUpYes = document.querySelector("#yes");
 const popUpNo = document.querySelector("#no");
+const undoButton = document.querySelector("#undoButton");
+const board = document.querySelector("#board");
+let activeBoard;
 let prevBoardConfiguration;
 let auxiPrevBoardConfiguration;
 let preservedBoards = [];
-let activeBoard;
-const preservedScores = new Array(6);
-const preservedBestScores = new Array(6);
-const board = document.querySelector("#board");
-let anyCellMotionOnBoardPreviously = false;
-let prevScore = 0;
-let prevBestScore = 0;
 const score = document.querySelector("#score");
 const best = document.querySelector("#best");
+let prevScore = 0;
+let prevBestScore = 0;
+const preservedScores = new Array(6);
+const preservedBestScores = new Array(6);
 let processing = false;
 
 //! Home Page
@@ -44,26 +43,12 @@ startOrContinueButton.addEventListener("click", (e) => {
 		activeBoard = preservedBoards.find((boards) => boards.length === size);
 		removeFromPreservedBoards();
 	}
-	start(startOrContinueButton.innerText);
+	start(startOrContinueButton.innerText, 0);
 });
 newGameButton.addEventListener("click", (e) => {
 	removeFromPreservedBoards();
 	renewActiveBoardArr();
-	start(newGameButton.innerText);
-});
-
-//! Pop Up
-function popUpToggle() {
-	popUpBg.classList.toggle("hidden");
-	popUp.classList.toggle("hidden");
-}
-popUpYes.addEventListener("click", () => {
-	renewActiveBoardArr();
-	populateBoard("New Game");
-	popUpToggle();
-});
-popUpNo.addEventListener("click", () => {
-	popUpToggle();
+	start(newGameButton.innerText, 0);
 });
 
 //! Play Page
@@ -80,6 +65,18 @@ restartGameButton.addEventListener("click", () => {
 	if (cannotPerformMove()) return;
 	popUpToggle();
 });
+function popUpToggle() {
+	popUpBg.classList.toggle("hidden");
+	popUp.classList.toggle("hidden");
+}
+popUpYes.addEventListener("click", () => {
+	renewActiveBoardArr();
+	start("New Game", 1);
+	popUpToggle();
+});
+popUpNo.addEventListener("click", () => {
+	popUpToggle();
+});
 undoButton.addEventListener("click", () => {
 	if (cannotPerformMove()) return;
 	activeBoard = prevBoardConfiguration.map((arr) => [...arr]);
@@ -94,8 +91,8 @@ board.addEventListener("touchmove", handleInput);
 board.addEventListener("touchend", handleInput);
 document.addEventListener("keydown", handleInput);
 async function handleInput(e) {
+	// console.log("keypress " + processing);
 	if (cannotPerformMove()) return;
-	console.log("keypress " + processing);
 	if (e.type !== "keydown") e.preventDefault();
 	switch (e.type) {
 		case "touchstart":
@@ -169,9 +166,9 @@ function homeAndPlayPageSwap() {
 	homePage.classList.toggle("hidden");
 	playPage.classList.toggle("hidden");
 }
-async function start(start$newGameOrContinueGame) {
+async function start(start$newGameOrContinueGame, usingRestartButton) {
 	processing = true;
-	homeAndPlayPageSwap();
+	if (!usingRestartButton) homeAndPlayPageSwap();
 	if (
 		start$newGameOrContinueGame === "Start Game" ||
 		start$newGameOrContinueGame === "New Game"
@@ -240,12 +237,14 @@ function cellAppear(cell) {
 		cell = createCell(i, j);
 	}
 	board.appendChild(cell);
-	cell.style.transform = "scale(0)";
 	cell.style.transitionDuration = `${cellAppearDuration()}ms`;
+	cell.style.transform = "scale(0)";
 	setTimeout(() => {
 		cell.style.transform = "";
+	}, 1);
+	setTimeout(() => {
 		cell.style.transitionDuration = `${cellTranslationDuration()}ms`;
-	}, cellAppearDuration());
+	}, 1 + cellAppearDuration());
 }
 function createCell(i, j) {
 	const cell = document.createElement("div");
@@ -253,17 +252,14 @@ function createCell(i, j) {
 	cell.classList.add("cell");
 	cell.style.height = cellDimension();
 	cell.style.margin = `${cellMargin()}px`;
-	setCellPositionAndId(cell, i, j);
-	setCellValColorFontsz(cell, val);
-	return cell;
-}
-function setCellPositionAndId(cell, i, j) {
 	const container = document
 		.getElementById(`${i}${j}`)
 		.getBoundingClientRect();
 	cell.style.top = `${container.top - cellMargin()}px`;
 	cell.style.left = `${container.left - cellMargin()}px`;
 	cell.id = `c${i}${j}`;
+	setCellValColorFontsz(cell, val);
+	return cell;
 }
 function setCellValColorFontsz(cell, val) {
 	cell.innerText = val;
@@ -284,13 +280,16 @@ function setCellValColorFontsz(cell, val) {
 	cell.style.fontSize = `${parseInt(cell.style.height) * factor}px`;
 }
 function cellAppearDuration() {
-	return 1000;
+	return 500;
 }
 function oneUnitTranslationDistance() {
 	return parseFloat(cellDimension()) + 2 * cellMargin();
 }
 function cellTranslationDuration() {
 	return 1000;
+}
+function cellCollisionDuration() {
+	return 500;
 }
 function updateScores(val) {
 	const currScore = parseInt(score.innerHTML.substring(9));
@@ -304,12 +303,23 @@ async function handleMove(direction) {
 	auxiPrevBoardConfiguration = activeBoard.map((row) => [...row]);
 	const currScore = parseInt(score.innerHTML.substring(9));
 	const currBestScore = parseInt(best.innerHTML.substring(8));
-	let scoreAddition;
-	if (direction === "ArrowUp") scoreAddition = await arrowUp();
-	else if (direction === "ArrowLeft") scoreAddition = arrowLeft();
-	else if (direction === "ArrowRight") scoreAddition = arrowRight();
-	else scoreAddition = arrowDown();
-	console.log("returned " + scoreAddition);
+	const cellTranslations = [];
+	const scoreAddition = determineCellTranslations(
+		cellTranslations,
+		direction
+	);
+	await new Promise(async (res) => {
+		await translationsAndCollisions(cellTranslations, direction, scoreAddition);
+		// console.log("returned, " + (board.childElementCount - size * size));
+		setTimeout(() => {
+			res();
+		}, cellTranslationDuration() + (scoreAddition ? cellCollisionDuration() : 0));
+	});
+	// console.log("resolved");
+	// for (let i = 0; i < size; ++i) {
+	// 	for (let j = 0; j < size; ++j) console.log(activeBoard[i][j] + ", ");
+	// 	console.log();
+	// }
 	updateScores(scoreAddition);
 	const newScore = parseInt(score.innerHTML.substring(9));
 	const newBestScore = parseInt(best.innerHTML.substring(8));
@@ -325,8 +335,7 @@ async function handleMove(direction) {
 	}
 	processing = false;
 }
-async function arrowUp() {
-	const cellTranslations = [];
+function determineCellTranslations(cellTranslations, direction) {
 	for (let i = 1; i < size; ++i) {
 		for (let j = 0; j < size; ++j) {
 			if (activeBoard[i][j] !== 0) {
@@ -364,9 +373,12 @@ async function arrowUp() {
 		activeBoard[nextI][j] = activeBoard[i][j];
 		if (nextI !== i) activeBoard[i][j] = 0;
 	});
-	// cellTranslations.forEach((arr) => {
-	// 	console.log(arr[0], arr[1], arr[2], arr[3]);
-	// });
+	cellTranslations.forEach((arr) => {
+		console.log(arr[0], arr[1], arr[2], arr[3]);
+	});
+	return scoreAddition;
+}
+async function translationsAndCollisions(cellTranslations, direction, scoreAddition) {
 	await new Promise((res) => {
 		for (let t = 0; t < cellTranslations.length; ++t) {
 			const arr = cellTranslations[t];
@@ -380,41 +392,35 @@ async function arrowUp() {
 					parseFloat(cell.style.top) + totalTranslationDistance
 				}px`;
 				cell.style.transform = "";
-				// if (arr[3] === 1) {
-				// 	let i = -1;
-				// 	while (++i < cellTranslations.length) {
-				// 		if (cellTranslations[i][1] == arr[1]) break;
-				// 	}
-				// 	const destinationCell = document.getElementById(
-				// 		`c${cellTranslations[i][1]}${cellTranslations[i][2]}`
-				// 	);
-				// 	// console.log("dc: " + destinationCell.id);
-				// 	board.removeChild(destinationCell);
-				// 	// console.log(cell.id);
-				// 	cell.style.transitionDuration = "500ms";
-				// 	setTimeout(() => {
-				// 		// cell.style.transform = "scale(1.15)";
-				// 		setCellValColorFontsz(
-				// 			cell,
-				// 			activeBoard[arr[1]][arr[2]]
-				// 		);
-				// 		cell.style.transform = "";
-				// 		cell.style.transitionDuration = `${cellTranslationDuration()}ms`;
-				// 		// console.log(3);
-				// 		if (t === cellTranslations.length - 1) res();
-				// 	}, 500);
-				// }
+				if (arr[3] === 1) {
+					let i = -1;
+					while (++i < cellTranslations.length) {
+						if (cellTranslations[i][1] == arr[1]) break;
+					}
+					const destinationCell = document.getElementById(
+						`c${cellTranslations[i][1]}${cellTranslations[i][2]}`
+					);
+					cell.style.transitionDuration = `${cellCollisionDuration()}ms`;
+					cell.style.transform = "scale(1.15)";
+					setTimeout(() => {
+						setCellValColorFontsz(
+							cell,
+							activeBoard[arr[1]][arr[2]]
+						);
+						// console.log("dc: " + destinationCell.id);
+						board.removeChild(destinationCell);
+						cell.style.transform = "";
+						cell.style.transitionDuration = `${cellTranslationDuration()}ms`;
+						// console.log(3);
+						if (t === cellTranslations.length - 1) res();
+					}, cellCollisionDuration());
+				}
 				cell.id = `c${arr[1]}${arr[2]}`;
 				// console.log(2);
-				// if (!scoreAddition && t === cellTranslations.length - 1) res();
-				if (t === cellTranslations.length - 1) res();
+				if (!scoreAddition && t === cellTranslations.length - 1) res();
+				// if (t === cellTranslations.length - 1) res();
 			}, cellTranslationDuration());
 		}
 		res();
 	});
-	// console.log("resolved");
-	return scoreAddition;
 }
-function arrowLeft() {}
-function arrowRight() {}
-function arrowDown() {}

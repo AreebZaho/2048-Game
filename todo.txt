@@ -1,19 +1,15 @@
-GitHub + Repo + LinkedIn anchors [DONE]
-Media queries home page [DONE]
-Media queries play page [DONE]
-2 90% 4 10% spawn probability [DONE]
-131072 max tile number [DONE]
-Undo button [DONE]
-Scoreboards [DONE]
-Different tile colors for different numbers [DONE]
-Motion with touch [DONE]
-Tile appearing animation [DONE]
-Tile motion animation
+breaking tarnslation function into 2 parts for scoreAddition
+cell appear duration not working
+fix non synchronised cell dissapearing while translation instead of on collision
 Tile collision + enlarge animation
-Scoreboard animation 
+Get rid of gamestarted? / processing ony / asyncs only
+Scoreboard animation
 Win visuals
 Game over visuals
+Site Icon
 Home page css
 Play page css
 Dark mode toggler
-Site Icon 
+Readme with ss/vid
+Give star at github / contribute to make better
+Linkedin post with features + vid
