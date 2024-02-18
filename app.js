@@ -14,8 +14,8 @@ const popUpNo = document.querySelector("#no");
 const undoButton = document.querySelector("#undoButton");
 const board = document.querySelector("#board");
 let activeBoard;
-let prevBoardConfiguration;
-let auxiPrevBoardConfiguration;
+let prevBoard;
+let auxiPrevBoard;
 let preservedBoards = [];
 const score = document.querySelector("#score");
 const best = document.querySelector("#best");
@@ -79,7 +79,7 @@ popUpNo.addEventListener("click", () => {
 });
 undoButton.addEventListener("click", () => {
 	if (cannotPerformMove()) return;
-	activeBoard = prevBoardConfiguration.map((arr) => [...arr]);
+	activeBoard = prevBoard.map((arr) => [...arr]);
 	//* both scores updated in populateBoard() based on start/new/continue so update here after populBoard() call for correct values
 	score.innerHTML = `SCORE<br>${prevScore}`;
 	best.innerHTML = `BEST<br>${prevBestScore}`;
@@ -202,9 +202,9 @@ async function populateBoard(start$newGameOrContinueGame) {
 		} else fillCellsForContinueGame();
 		setTimeout(() => {
 			res();
-		}, cellAppearDuration());
+		}, 50 + cellAppearDuration);
 	});
-	prevBoardConfiguration = activeBoard.map((arr) => [...arr]);
+	prevBoard = activeBoard.map((arr) => [...arr]);
 }
 function fillCellContainers() {
 	for (let i = 0; i < size; ++i) {
@@ -236,15 +236,15 @@ function cellAppear(cell) {
 		activeBoard[i][j] = Math.floor(Math.random() * 10) == 9 ? 4 : 2;
 		cell = createCell(i, j);
 	}
-	board.appendChild(cell);
-	cell.style.transitionDuration = `${cellAppearDuration()}ms`;
+	cell.style.transitionDuration = `${cellAppearDuration}ms`;
 	cell.style.transform = "scale(0)";
+	board.appendChild(cell);
 	setTimeout(() => {
-		cell.style.transform = "";
-	}, 1);
+		cell.style.transform = "none";
+	}, 50);
 	setTimeout(() => {
 		cell.style.transitionDuration = `${cellTranslationDuration()}ms`;
-	}, 1 + cellAppearDuration());
+	}, 50 + cellAppearDuration);
 }
 function createCell(i, j) {
 	const cell = document.createElement("div");
@@ -279,18 +279,14 @@ function setCellValColorFontsz(cell, val) {
 			: 0.28;
 	cell.style.fontSize = `${parseInt(cell.style.height) * factor}px`;
 }
-function cellAppearDuration() {
-	return 500;
-}
+const cellAppearDuration = 1000;
 function oneUnitTranslationDistance() {
 	return parseFloat(cellDimension()) + 2 * cellMargin();
 }
 function cellTranslationDuration() {
-	return 1000;
+	return 3000;
 }
-function cellCollisionDuration() {
-	return 500;
-}
+const cellCollisionDuration = 100;
 function updateScores(val) {
 	const currScore = parseInt(score.innerHTML.substring(9));
 	const currBestScore = parseInt(best.innerHTML.substring(8));
@@ -299,128 +295,282 @@ function updateScores(val) {
 	best.innerHTML = `BEST<br>${Math.max(currScore + val, currBestScore)}`;
 }
 async function handleMove(direction) {
+	console.log("in handleMove");
 	processing = true;
-	auxiPrevBoardConfiguration = activeBoard.map((row) => [...row]);
+	auxiPrevBoard = activeBoard.map((arr) => [...arr]);
 	const currScore = parseInt(score.innerHTML.substring(9));
 	const currBestScore = parseInt(best.innerHTML.substring(8));
 	const cellTranslations = [];
-	const scoreAddition = determineCellTranslations(
+	const {scoreAddition, translationsExist} = determineCellTranslations(
 		cellTranslations,
 		direction
 	);
-	await new Promise(async (res) => {
-		await translationsAndCollisions(cellTranslations, direction, scoreAddition);
-		// console.log("returned, " + (board.childElementCount - size * size));
-		setTimeout(() => {
-			res();
-		}, cellTranslationDuration() + (scoreAddition ? cellCollisionDuration() : 0));
-	});
-	// console.log("resolved");
-	// for (let i = 0; i < size; ++i) {
-	// 	for (let j = 0; j < size; ++j) console.log(activeBoard[i][j] + ", ");
-	// 	console.log();
-	// }
-	updateScores(scoreAddition);
-	const newScore = parseInt(score.innerHTML.substring(9));
-	const newBestScore = parseInt(best.innerHTML.substring(8));
-	if (currScore !== newScore) prevScore = currScore;
-	if (currBestScore !== newBestScore) prevBestScore = currBestScore;
-	if (
-		!auxiPrevBoardConfiguration.every((row, i) =>
-			row.every((el, j) => el === activeBoard[i][j])
-		)
-	) {
-		prevBoardConfiguration = auxiPrevBoardConfiguration;
-		cellAppear();
-	}
+	console.log(scoreAddition + " " + translationsExist);
+	if (translationsExist) {
+		prevBoard = auxiPrevBoard;
+		await translationsAndCollisions(
+			cellTranslations,
+			direction,
+			scoreAddition
+		);
+		console.log("trans,col done : back in handleMove");
+		await new Promise((res) => {
+			if (scoreAddition) {
+				updateScores(scoreAddition);
+				const newScore = parseInt(score.innerHTML.substring(9));
+				const newBestScore = parseInt(best.innerHTML.substring(8));
+				if (currScore !== newScore) prevScore = currScore;
+				if (currBestScore !== newBestScore)
+					prevBestScore = currBestScore;
+			}
+			cellAppear();
+			setTimeout(() => {
+				console.log(
+					"after trans,col : cell appear,score updation done"
+				);
+				res();
+			}, 50 + cellAppearDuration);
+		});
+	} else console.log("no cell appear :=: trans exist");
 	processing = false;
 }
 function determineCellTranslations(cellTranslations, direction) {
-	for (let i = 1; i < size; ++i) {
-		for (let j = 0; j < size; ++j) {
-			if (activeBoard[i][j] !== 0) {
-				const arr = [i, i, j, 0];
-				cellTranslations.push(arr);
+	let scoreAddition = 0;
+	switch (direction) {
+		case "ArrowUp":
+			for (let i = 1; i < size; ++i) {
+				for (let j = 0; j < size; ++j) {
+					if (activeBoard[i][j] !== 0) {
+						const arr = [i, i, j, j, 0];
+						cellTranslations.push(arr);
+					}
+				}
 			}
-		}
+			cellTranslations.forEach((arr) => {
+				const i = arr[1];
+				const j = arr[2];
+				let nextI = i;
+				while (0 < nextI && activeBoard[nextI - 1][j] === 0) --nextI;
+				arr[1] = nextI;
+				activeBoard[nextI][j] = activeBoard[i][j];
+				if (nextI !== i) activeBoard[i][j] = 0;
+			});
+			cellTranslations.forEach((arr) => {
+				const i = arr[1];
+				const j = arr[2];
+				if (0 < i && activeBoard[i][j] === activeBoard[i - 1][j]) {
+					arr[1] = i - 1;
+					arr[4] = 1;
+					activeBoard[i][j] = 0;
+					scoreAddition += activeBoard[i - 1][j] *= 2;
+				}
+			});
+			cellTranslations = cellTranslations.filter((arr) => {
+				const i = arr[1];
+				const j = arr[2];
+				let nextI = i;
+				while (0 < nextI && activeBoard[nextI - 1][j] === 0) --nextI;
+				arr[1] = nextI;
+				activeBoard[nextI][j] = activeBoard[i][j];
+				if (nextI !== i) activeBoard[i][j] = 0;
+				return arr[0] !== arr[1];
+			});
+			break;
+		case "ArrowDown":
+			for (let i = size - 2; i >= 0; --i) {
+				for (let j = 0; j < size; ++j) {
+					if (activeBoard[i][j] !== 0) {
+						const arr = [i, i, j, j, 0];
+						cellTranslations.push(arr);
+					}
+				}
+			}
+			cellTranslations.forEach((arr) => {
+				const i = arr[1];
+				const j = arr[2];
+				let nextI = i;
+				while (nextI < size - 1 && activeBoard[nextI + 1][j] === 0)
+					++nextI;
+				arr[1] = nextI;
+				activeBoard[nextI][j] = activeBoard[i][j];
+				if (nextI !== i) activeBoard[i][j] = 0;
+			});
+			cellTranslations.forEach((arr) => {
+				const i = arr[1];
+				const j = arr[2];
+				if (
+					i < size - 1 &&
+					activeBoard[i][j] === activeBoard[i + 1][j]
+				) {
+					arr[1] = i + 1;
+					arr[4] = 1;
+					activeBoard[i][j] = 0;
+					scoreAddition += activeBoard[i + 1][j] *= 2;
+				}
+			});
+			cellTranslations = cellTranslations.filter((arr) => {
+				const i = arr[1];
+				const j = arr[2];
+				let nextI = i;
+				while (nextI < size - 1 && activeBoard[nextI + 1][j] === 0)
+					++nextI;
+				arr[1] = nextI;
+				activeBoard[nextI][j] = activeBoard[i][j];
+				if (nextI !== i) activeBoard[i][j] = 0;
+				return arr[0] !== arr[1];
+			});
+			break;
+		case "ArrowLeft":
+			for (let j = 1; j < size; ++j) {
+				for (let i = 0; i < size; ++i) {
+					if (activeBoard[i][j] !== 0) {
+						const arr = [i, i, j, j, 0];
+						cellTranslations.push(arr);
+					}
+				}
+			}
+			cellTranslations.forEach((arr) => {
+				const i = arr[0];
+				const j = arr[3];
+				let nextJ = j;
+				while (0 < nextJ && activeBoard[i][nextJ - 1] === 0) --nextJ;
+				arr[3] = nextJ;
+				activeBoard[i][nextJ] = activeBoard[i][j];
+				if (nextJ !== j) activeBoard[i][j] = 0;
+			});
+			cellTranslations.forEach((arr) => {
+				const i = arr[0];
+				const j = arr[3];
+				if (0 < j && activeBoard[i][j] === activeBoard[i][j - 1]) {
+					arr[3] = j - 1;
+					arr[4] = 1;
+					activeBoard[i][j] = 0;
+					scoreAddition += activeBoard[i][j - 1] *= 2;
+				}
+			});
+			cellTranslations = cellTranslations.filter((arr) => {
+				const i = arr[0];
+				const j = arr[3];
+				let nextJ = j;
+				while (0 < nextJ && activeBoard[i][nextJ - 1] === 0) --nextJ;
+				arr[3] = nextJ;
+				activeBoard[i][nextJ] = activeBoard[i][j];
+				if (nextJ !== j) activeBoard[i][j] = 0;
+				return arr[2] !== arr[3];
+			});
+			break;
+		default:
+			for (let j = size - 2; j >= 0; --j) {
+				for (let i = 0; i < size; ++i) {
+					if (activeBoard[i][j] !== 0) {
+						const arr = [i, i, j, j, 0];
+						cellTranslations.push(arr);
+					}
+				}
+			}
+			cellTranslations.forEach((arr) => {
+				const i = arr[0];
+				const j = arr[3];
+				let nextJ = j;
+				while (nextJ < size - 1 && activeBoard[i][nextJ + 1] === 0)
+					++nextJ;
+				arr[3] = nextJ;
+				activeBoard[i][nextJ] = activeBoard[i][j];
+				if (nextJ !== j) activeBoard[i][j] = 0;
+			});
+			cellTranslations.forEach((arr) => {
+				const i = arr[0];
+				const j = arr[3];
+				if (
+					j < size - 1 &&
+					activeBoard[i][j] === activeBoard[i][j + 1]
+				) {
+					arr[3] = j + 1;
+					arr[4] = 1;
+					activeBoard[i][j] = 0;
+					scoreAddition += activeBoard[i][j + 1] *= 2;
+				}
+			});
+			cellTranslations = cellTranslations.filter((arr) => {
+				const i = arr[0];
+				const j = arr[3];
+				let nextJ = j;
+				while (nextJ < size - 1 && activeBoard[i][nextJ + 1] === 0)
+					++nextJ;
+				arr[3] = nextJ;
+				activeBoard[i][nextJ] = activeBoard[i][j];
+				if (nextJ !== j) activeBoard[i][j] = 0;
+				return arr[2] !== arr[3];
+			});
 	}
 	cellTranslations.forEach((arr) => {
-		const i = arr[1];
-		const j = arr[2];
-		let nextI = i;
-		while (nextI > 0 && activeBoard[nextI - 1][j] === 0) --nextI;
-		arr[1] = nextI;
-		activeBoard[nextI][j] = activeBoard[i][j];
-		if (nextI !== i) activeBoard[i][j] = 0;
+		console.log(arr[0], arr[1], arr[2], arr[3], arr[4]);
 	});
-	let scoreAddition = 0;
-	cellTranslations.forEach((arr) => {
-		const i = arr[1];
-		const j = arr[2];
-		if (i > 0 && activeBoard[i][j] === activeBoard[i - 1][j]) {
-			arr[1] = i - 1;
-			arr[3] = 1;
-			activeBoard[i][j] = 0;
-			scoreAddition += activeBoard[i - 1][j] *= 2;
-		}
-	});
-	cellTranslations.forEach((arr) => {
-		const i = arr[1];
-		const j = arr[2];
-		let nextI = i;
-		while (nextI > 0 && activeBoard[nextI - 1][j] === 0) --nextI;
-		arr[1] = nextI;
-		activeBoard[nextI][j] = activeBoard[i][j];
-		if (nextI !== i) activeBoard[i][j] = 0;
-	});
-	cellTranslations.forEach((arr) => {
-		console.log(arr[0], arr[1], arr[2], arr[3]);
-	});
-	return scoreAddition;
+	return {scoreAddition, translationsExist: cellTranslations.length};
 }
-async function translationsAndCollisions(cellTranslations, direction, scoreAddition) {
+async function translationsAndCollisions(
+	cellTranslations,
+	direction,
+	scoreAddition
+) {
+	console.log("in transAndCol");
 	await new Promise((res) => {
 		for (let t = 0; t < cellTranslations.length; ++t) {
 			const arr = cellTranslations[t];
 			const cell = document.getElementById(`c${arr[0]}${arr[2]}`);
 			const totalTranslationDistance =
-				oneUnitTranslationDistance() * (arr[1] - arr[0]);
-			cell.style.transform = `top`;
-			// console.log(1 + " " + cell.id);
+				oneUnitTranslationDistance() *
+				(arr[1] - arr[0] + arr[3] - arr[2]);
+			cell.style.transform =
+				direction === "ArrowUp" || direction === "ArrowDown"
+					? `top`
+					: `translateX(${totalTranslationDistance}px)`;
+			// console.log("cell ", cell.id);
+			// console.log("dist ", totalTranslationDistance);
 			setTimeout(() => {
-				cell.style.top = `${
-					parseFloat(cell.style.top) + totalTranslationDistance
-				}px`;
-				cell.style.transform = "";
-				if (arr[3] === 1) {
+				console.log("motion done");
+				if (direction === "ArrowUp" || direction === "ArrowDown") {
+					cell.style.top = `${
+						parseFloat(cell.style.top) + totalTranslationDistance
+					}px`;
+				} else {
+					cell.style.left = `${
+						parseFloat(cell.style.left) +
+						2 * totalTranslationDistance
+					}`;
+				}
+				cell.style.transform = "none";
+				if (arr[4]) {
 					let i = -1;
 					while (++i < cellTranslations.length) {
-						if (cellTranslations[i][1] == arr[1]) break;
+						if (
+							cellTranslations[i][1] === arr[1] &&
+							cellTranslations[i][3] === arr[3]
+						)
+							break;
 					}
 					const destinationCell = document.getElementById(
-						`c${cellTranslations[i][1]}${cellTranslations[i][2]}`
+						`c${cellTranslations[i][1]}${cellTranslations[i][3]}`
 					);
-					cell.style.transitionDuration = `${cellCollisionDuration()}ms`;
+					// console.log("dc ", destinationCell.id);
+					cell.style.transitionDuration = `${cellCollisionDuration}ms`;
 					cell.style.transform = "scale(1.15)";
 					setTimeout(() => {
 						setCellValColorFontsz(
 							cell,
-							activeBoard[arr[1]][arr[2]]
+							activeBoard[arr[1]][arr[3]]
 						);
-						// console.log("dc: " + destinationCell.id);
 						board.removeChild(destinationCell);
-						cell.style.transform = "";
+						cell.style.transform = "none";
+						res();
+					}, cellCollisionDuration);
+					setTimeout(() => {
 						cell.style.transitionDuration = `${cellTranslationDuration()}ms`;
-						// console.log(3);
-						if (t === cellTranslations.length - 1) res();
-					}, cellCollisionDuration());
+					}, 500 + cellCollisionDuration);
 				}
-				cell.id = `c${arr[1]}${arr[2]}`;
-				// console.log(2);
-				if (!scoreAddition && t === cellTranslations.length - 1) res();
-				// if (t === cellTranslations.length - 1) res();
+				cell.id = `c${arr[1]}${arr[3]}`;
+				if (!scoreAddition) res();
 			}, cellTranslationDuration());
 		}
-		res();
 	});
 }

@@ -232,7 +232,6 @@ div {
 	border-radius: 10px;
 	text-shadow: 2px 3px 5px rgba(0, 0, 0, 0.4);
 }
-/*****************************************************/
 .popUpBg {
 	position: fixed;
 	top: 0;
@@ -259,7 +258,7 @@ div {
 	height: 65%;
 	width: 100%;
 	border-bottom: 2px solid black;
-	padding: 5px;
+	padding: 20px;
 	font-size: 0.8rem;
 	text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
 	text-align: center;
@@ -267,7 +266,6 @@ div {
 #popUpOptions {
 	height: calc(100% - 65%);
 	width: 100%;
-	font-size: 1.5rem;
 }
 #popUpOptions > div {
 	height: 100%;
@@ -277,7 +275,7 @@ div {
 }
 #yes {
 	border-right: 2px solid black;
-	color: rgb(28, 222, 67);
+	color: rgb(24, 184, 56);
 	border-bottom-left-radius: 20px;
 }
 #no {
