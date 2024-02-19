@@ -90,10 +90,13 @@ board.addEventListener("touchstart", handleInput);
 board.addEventListener("touchmove", handleInput);
 board.addEventListener("touchend", handleInput);
 document.addEventListener("keydown", handleInput);
-async function handleInput(e) {
-	// console.log("keypress " + processing);
+function handleInput(e) {
 	if (cannotPerformMove()) return;
 	if (e.type !== "keydown") e.preventDefault();
+	if (board.childElementCount == 2 * size * size && determineGameOver()) {
+		gameOver();
+		return;
+	}
 	switch (e.type) {
 		case "touchstart":
 			startX = e.touches[0].clientX;
@@ -183,7 +186,7 @@ async function start(start$newGameOrContinueGame, usingRestartButton) {
 	}
 	best.innerHTML = `BEST<br>${preservedBestScores[size - 3] || 0}`; //* if new size board for first time -> best = 0
 	await populateBoard(start$newGameOrContinueGame);
-	console.log("populated");
+	// console.log("populated");
 	processing = false;
 	gameStarted = true;
 }
@@ -259,6 +262,28 @@ function createCell(i, j) {
 	cell.style.left = `${container.left - cellMargin()}px`;
 	cell.id = `c${i}${j}`;
 	setCellValColorFontsz(cell, val);
+	//*for cell transition only
+	cell.addEventListener("transitionend", function (e) {
+		if (!e.propertyName.startsWith("translate")) return;
+		const computedStyle = window.getComputedStyle(cell);
+		const matrix = new WebKitCSSMatrix(computedStyle.transform);
+		const translatedX = matrix.m41;
+		const translatedY = matrix.m42;
+		cell.style.top = `${parseFloat(cell.style.top) + translatedY}px`;
+		cell.style.left = `${parseFloat(cell.style.left) + translatedX}px`;
+		cell.style.transform = "none";
+		console.log(
+			cell.id,
+			"transY: ",
+			translatedY,
+			"transX: ",
+			translatedX,
+			"top:",
+			cell.style.top,
+			"left:",
+			cell.style.left
+		);
+	});
 	return cell;
 }
 function setCellValColorFontsz(cell, val) {
@@ -284,7 +309,7 @@ function oneUnitTranslationDistance() {
 	return parseFloat(cellDimension()) + 2 * cellMargin();
 }
 function cellTranslationDuration() {
-	return 5000;
+	return 4000;
 }
 const cellCollisionDuration = 1000;
 function updateScores(val) {
@@ -294,12 +319,12 @@ function updateScores(val) {
 	prevBestScore = currBestScore;
 	const newScore = currScore + val;
 	const newBestScore = Math.max(newScore, currBestScore);
-	//*animation
+	//*animation: use blink or a number floting up with +scoreAddition when updated
 	score.innerHTML = `SCORE<br>${newScore}`;
 	best.innerHTML = `BEST<br>${newBestScore}`;
 }
 async function handleMove(direction) {
-	console.log("in handleMove");
+	// console.log("in handleMove");
 	processing = true;
 	auxiPrevBoard = activeBoard.map((arr) => [...arr]);
 	const cellTranslations = [];
@@ -307,7 +332,7 @@ async function handleMove(direction) {
 		cellTranslations,
 		direction
 	);
-	console.log(scoreAddition + " " + translationsExist);
+	// console.log(scoreAddition + " " + translationsExist);
 	if (translationsExist) {
 		prevBoard = auxiPrevBoard;
 		await translationsAndCollisions(
@@ -326,7 +351,7 @@ async function handleMove(direction) {
 				res();
 			}, 50 + cellAppearDuration);
 		});
-	} else console.log("no cell appear :=: trans exist");
+	} else console.log("no cell appear :=: no trans exist");
 	processing = false;
 }
 function determineCellTranslations(cellTranslations, direction) {
@@ -498,9 +523,9 @@ function determineCellTranslations(cellTranslations, direction) {
 				return arr[2] !== arr[3];
 			});
 	}
-	cellTranslations.forEach((arr) => {
-		console.log(arr[0], arr[1], arr[2], arr[3], arr[4]);
-	});
+	// cellTranslations.forEach((arr) => {
+	// 	console.log(arr[0], arr[1], arr[2], arr[3], arr[4]);
+	// });
 	return {scoreAddition, translationsExist: cellTranslations.length};
 }
 async function translationsAndCollisions(
@@ -508,7 +533,7 @@ async function translationsAndCollisions(
 	direction,
 	scoreAddition
 ) {
-	console.log("in transAndCol");
+	// console.log("in transAndCol");
 	await new Promise((res) => {
 		for (let t = 0; t < cellTranslations.length; ++t) {
 			const arr = cellTranslations[t];
@@ -522,50 +547,56 @@ async function translationsAndCollisions(
 			// console.log("cell ", cell.id);
 			setTimeout(() => {
 				console.log("motion done");
-				if (direction === "ArrowUp" || direction === "ArrowDown") {
-					cell.style.top = `${
-						parseFloat(cell.style.top) + totalTranslationDistance
-					}px`;
-				} else {
-					cell.style.left = `${
-						parseFloat(cell.style.left) +
-						2 * totalTranslationDistance
-					}`;
-				}
-				cell.style.transform = "none";
-				if (arr[4]) {
-					let i = -1;
-					while (++i < cellTranslations.length) {
-						if (
-							cellTranslations[i][1] === arr[1] &&
-							cellTranslations[i][3] === arr[3]
-						)
-							break;
-					}
-					const destinationCell = document.getElementById(
-						`c${cellTranslations[i][1]}${cellTranslations[i][3]}`
-					);
-					// console.log("dc ", destinationCell.id);
-					cell.style.transitionDuration = `${cellCollisionDuration}ms`;
-					cell.style.transform = "scale(1.15)";
-					setTimeout(() => {
-						setCellValColorFontsz(
-							cell,
-							activeBoard[arr[1]][arr[3]]
-						);
-						board.removeChild(destinationCell);
-						cell.style.transform = "none";
-					}, cellCollisionDuration);
-					setTimeout(() => {
-						cell.style.transitionDuration = `${cellTranslationDuration()}ms`;
-						if (t === cellTranslations.length - 1) res();
-					}, 2 * cellCollisionDuration);
-				}
+				//* for cell translations only
+				// if (direction === "ArrowUp" || direction === "ArrowDown") {
+				// 	cell.style.top = `${
+				// 		parseFloat(cell.style.top) + totalTranslationDistance
+				// 	}px`;
+				// } else {
+				// 	cell.style.left = `${
+				// 		parseFloat(cell.style.left) + totalTranslationDistance
+				// 	}`;
+				// }
+				// cell.style.transform = "none";
+				//* for cell collisions (timeout after collisions' timeout done)
+				// if (arr[4]) {
+				// 	let i = -1;
+				// 	while (++i < cellTranslations.length) {
+				// 		if (
+				// 			cellTranslations[i][1] === arr[1] &&
+				// 			cellTranslations[i][3] === arr[3]
+				// 		)
+				// 			break;
+				// 	}
+				// 	const destinationCell = document.getElementById(
+				// 		`c${cellTranslations[i][1]}${cellTranslations[i][3]}`
+				// 	);
+				// 	// console.log("dc ", destinationCell.id);
+				// 	cell.style.transitionDuration = `${cellCollisionDuration}ms`;
+				// 	cell.style.transform = "scale(1.15)";
+				// 	setTimeout(() => {
+				// 		setCellValColorFontsz(
+				// 			cell,
+				// 			activeBoard[arr[1]][arr[3]]
+				// 		);
+				// 		board.removeChild(destinationCell);
+				// 		cell.style.transform = "none";
+				// 	}, cellCollisionDuration);
+				// 	setTimeout(() => {
+				// 		cell.style.transitionDuration = `${cellTranslationDuration()}ms`;
+				// 		if (t === cellTranslations.length - 1) res();
+				// 	}, 2 * cellCollisionDuration);
+				// }
 				cell.id = `c${arr[1]}${arr[3]}`;
+				// if (t === cellTranslations.length - 1) res();
+				// * if no score addition then res here only instead of in if(arr[4]): collision true block
 				if (!scoreAddition && t === cellTranslations.length - 1) res();
 			}, cellTranslationDuration());
 		}
 	});
 }
-function gameOver() {}
+//* in handleMove check if board full and motion in all directions celltranslations length = 0
+//* display game over visual (but don't reset board): diplayed each time arrow key clicked but board not reset
+function gameOver() { }
+//*when 2048 achieved win visual but don't reset board
 function gameWin() {}
