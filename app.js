@@ -1,3 +1,4 @@
+const darkModeButton = document.querySelector("#darkMode");
 const leftCaret = document.querySelector("#leftCaret");
 const rightCaret = document.querySelector("#rightCaret");
 const sizeTag = document.querySelector("#sizeTag");
@@ -24,6 +25,10 @@ let prevBestScore = 0;
 const preservedScores = new Array(6);
 const preservedBestScores = new Array(6);
 let processing = false;
+
+darkModeButton.addEventListener("click", () => {
+	console.log("toggle dark mode");
+});
 
 //! Home Page
 leftCaret.addEventListener("click", () => {
@@ -597,6 +602,6 @@ async function translationsAndCollisions(
 }
 //* in handleMove check if board full and motion in all directions celltranslations length = 0
 //* display game over visual (but don't reset board): diplayed each time arrow key clicked but board not reset
-function gameOver() { }
+function gameOver() {}
 //*when 2048 achieved win visual but don't reset board
 function gameWin() {}
