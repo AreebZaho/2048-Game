@@ -166,6 +166,7 @@ div {
 	border-radius: 4px;
 	text-shadow: 2px 3px 5px rgba(0, 0, 0, 0.4);
 	position: absolute;
+	transition-timing-function: "linear";
 }
 .tile2 {
 	background: radial-gradient(ellipse at center, #e3e5e5, #76c6c6);

@@ -183,9 +183,9 @@ async function start(start$newGameOrContinueGame, usingRestartButton) {
 	}
 	best.innerHTML = `BEST<br>${preservedBestScores[size - 3] || 0}`; //* if new size board for first time -> best = 0
 	await populateBoard(start$newGameOrContinueGame);
-	console.log("population done");
-	gameStarted = true;
+	console.log("populated");
 	processing = false;
+	gameStarted = true;
 }
 async function populateBoard(start$newGameOrContinueGame) {
 	while (board.firstChild) {
@@ -279,27 +279,29 @@ function setCellValColorFontsz(cell, val) {
 			: 0.28;
 	cell.style.fontSize = `${parseInt(cell.style.height) * factor}px`;
 }
-const cellAppearDuration = 1000;
+const cellAppearDuration = 200;
 function oneUnitTranslationDistance() {
 	return parseFloat(cellDimension()) + 2 * cellMargin();
 }
 function cellTranslationDuration() {
-	return 3000;
+	return 5000;
 }
-const cellCollisionDuration = 100;
+const cellCollisionDuration = 1000;
 function updateScores(val) {
 	const currScore = parseInt(score.innerHTML.substring(9));
 	const currBestScore = parseInt(best.innerHTML.substring(8));
-	//*animation + updation
-	score.innerHTML = `SCORE<br>${currScore + val}`;
-	best.innerHTML = `BEST<br>${Math.max(currScore + val, currBestScore)}`;
+	prevScore = currScore;
+	prevBestScore = currBestScore;
+	const newScore = currScore + val;
+	const newBestScore = Math.max(newScore, currBestScore);
+	//*animation
+	score.innerHTML = `SCORE<br>${newScore}`;
+	best.innerHTML = `BEST<br>${newBestScore}`;
 }
 async function handleMove(direction) {
 	console.log("in handleMove");
 	processing = true;
 	auxiPrevBoard = activeBoard.map((arr) => [...arr]);
-	const currScore = parseInt(score.innerHTML.substring(9));
-	const currBestScore = parseInt(best.innerHTML.substring(8));
 	const cellTranslations = [];
 	const {scoreAddition, translationsExist} = determineCellTranslations(
 		cellTranslations,
@@ -315,14 +317,7 @@ async function handleMove(direction) {
 		);
 		console.log("trans,col done : back in handleMove");
 		await new Promise((res) => {
-			if (scoreAddition) {
-				updateScores(scoreAddition);
-				const newScore = parseInt(score.innerHTML.substring(9));
-				const newBestScore = parseInt(best.innerHTML.substring(8));
-				if (currScore !== newScore) prevScore = currScore;
-				if (currBestScore !== newBestScore)
-					prevBestScore = currBestScore;
-			}
+			if (scoreAddition) updateScores(scoreAddition);
 			cellAppear();
 			setTimeout(() => {
 				console.log(
@@ -521,12 +516,10 @@ async function translationsAndCollisions(
 			const totalTranslationDistance =
 				oneUnitTranslationDistance() *
 				(arr[1] - arr[0] + arr[3] - arr[2]);
-			cell.style.transform =
-				direction === "ArrowUp" || direction === "ArrowDown"
-					? `top`
-					: `translateX(${totalTranslationDistance}px)`;
+			cell.style.transform = `translate${
+				direction === "ArrowUp" || direction === "ArrowDown" ? "Y" : "X"
+			}(${totalTranslationDistance}px)`;
 			// console.log("cell ", cell.id);
-			// console.log("dist ", totalTranslationDistance);
 			setTimeout(() => {
 				console.log("motion done");
 				if (direction === "ArrowUp" || direction === "ArrowDown") {
@@ -562,15 +555,17 @@ async function translationsAndCollisions(
 						);
 						board.removeChild(destinationCell);
 						cell.style.transform = "none";
-						res();
 					}, cellCollisionDuration);
 					setTimeout(() => {
 						cell.style.transitionDuration = `${cellTranslationDuration()}ms`;
-					}, 500 + cellCollisionDuration);
+						if (t === cellTranslations.length - 1) res();
+					}, 2 * cellCollisionDuration);
 				}
 				cell.id = `c${arr[1]}${arr[3]}`;
-				if (!scoreAddition) res();
+				if (!scoreAddition && t === cellTranslations.length - 1) res();
 			}, cellTranslationDuration());
 		}
 	});
 }
+function gameOver() {}
+function gameWin() {}
